@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "id": "pm-1",
+      "email": "manager@hotelplatform.com",
+      "password": "manager123",
+      "role": "property_manager",
+      "name": "Sarah Johnson",
+      "verified": true,
+      "createdAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "owner-1",
+      "email": "owner1@example.com",
+      "password": "owner123",
+      "role": "unit_owner",
+      "name": "Mike Chen",
+      "verified": true,
+      "createdAt": "2024-01-05T00:00:00Z"
+    },
+    {
+      "id": "owner-2",
+      "email": "owner2@example.com",
+      "password": "owner123",
+      "role": "unit_owner",
+      "name": "Lisa Rodriguez",
+      "verified": false,
+      "createdAt": "2024-01-10T00:00:00Z"
+    },
+    
+
+    {
+      "id": "customer-1",
+      "email": "customer@example.com",
+      "password": "customer123",
+      "role": "customer",
+      "name": "John Smith",
+      "verified": true,
+      "createdAt": "2024-01-15T00:00:00Z"
+    }
+  ]
+}

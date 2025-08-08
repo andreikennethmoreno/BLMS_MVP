@@ -1,0 +1,18 @@
+{
+  "bookings": [
+    {
+      "id": "booking-1",
+      "propertyId": "prop-1",
+      "customerId": "customer-1",
+      "checkIn": "2024-02-15",
+      "checkOut": "2024-02-18",
+      "guests": 2,
+      "totalAmount": 495,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "bookedAt": "2024-01-28T00:00:00Z",
+      "customerName": "John Smith",
+      "customerEmail": "customer@example.com"
+    }
+  ]
+}
