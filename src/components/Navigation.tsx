@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Home, Building, Users, Settings } from 'lucide-react';
+import { LogOut, Home, Building, Users, Settings, AlertTriangle, Wrench, FileText, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavigationProps {
@@ -17,18 +17,25 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
           { id: 'dashboard', label: 'Dashboard', icon: Home },
           { id: 'properties', label: 'Properties', icon: Building },
           { id: 'owners', label: 'Unit Owners', icon: Users },
-          { id: 'bookings', label: 'Bookings', icon: Settings }
+          { id: 'bookings', label: 'Bookings', icon: Settings },
+          { id: 'concerns', label: 'Concerns', icon: AlertTriangle },
+          { id: 'jobs', label: 'Job Orders', icon: Wrench },
+          { id: 'forms', label: 'Form Templates', icon: FileText },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 }
         ];
       case 'unit_owner':
         return [
           { id: 'dashboard', label: 'Dashboard', icon: Home },
           { id: 'properties', label: 'My Properties', icon: Building },
-          { id: 'bookings', label: 'Bookings', icon: Settings }
+          { id: 'bookings', label: 'Bookings', icon: Settings },
+          { id: 'concerns', label: 'Concerns', icon: AlertTriangle },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 }
         ];
       case 'customer':
         return [
           { id: 'browse', label: 'Browse Properties', icon: Home },
-          { id: 'bookings', label: 'My Bookings', icon: Settings }
+          { id: 'bookings', label: 'My Bookings', icon: Settings },
+          { id: 'concerns', label: 'Report Issues', icon: AlertTriangle }
         ];
       default:
         return [];

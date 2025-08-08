@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import ReviewSystem from './ReviewSystem';
 import propertiesData from '../data/properties.json';
 import bookingsData from '../data/bookings.json';
 import usersData from '../data/users.json';
@@ -458,6 +459,11 @@ const CustomerDashboard: React.FC = () => {
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Host</h3>
                     <p className="text-gray-600">{getOwnerName(selectedProperty.ownerId)}</p>
+                  </div>
+
+                  {/* Reviews Section */}
+                  <div className="mb-6">
+                    <ReviewSystem propertyId={selectedProperty.id} showAddReview={true} />
                   </div>
                 </div>
 

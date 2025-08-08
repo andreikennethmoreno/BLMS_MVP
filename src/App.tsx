@@ -11,6 +11,10 @@ import UnitOwnerProperties from './components/UnitOwnerProperties';
 import UnitOwnerBookings from './components/UnitOwnerBookings';
 import CustomerDashboard from './components/CustomerDashboard';
 import CustomerBookings from './components/CustomerBookings';
+import ConcernSystem from './components/ConcernSystem';
+import JobOrderSystem from './components/JobOrderSystem';
+import FormTemplateSystem from './components/FormTemplateSystem';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -31,6 +35,14 @@ const AppContent: React.FC = () => {
           return <PropertyManagerOwners />;
         case 'bookings':
           return <PropertyManagerBookings />;
+        case 'concerns':
+          return <ConcernSystem />;
+        case 'jobs':
+          return <JobOrderSystem />;
+        case 'forms':
+          return <FormTemplateSystem />;
+        case 'analytics':
+          return <AnalyticsDashboard />;
         default:
           return <PropertyManagerDashboard />;
       }
@@ -44,6 +56,10 @@ const AppContent: React.FC = () => {
           return <UnitOwnerProperties />;
         case 'bookings':
           return <UnitOwnerBookings />;
+        case 'concerns':
+          return <ConcernSystem />;
+        case 'analytics':
+          return <AnalyticsDashboard />;
         default:
           return <UnitOwnerDashboard />;
       }
@@ -55,6 +71,8 @@ const AppContent: React.FC = () => {
           return <CustomerDashboard />;
         case 'bookings':
           return <CustomerBookings />;
+        case 'concerns':
+          return <ConcernSystem />;
         default:
           return <CustomerDashboard />;
       }
