@@ -1,0 +1,20 @@
+{
+  "jobOrders": [
+    {
+      "id": "job-1",
+      "concernId": "concern-1",
+      "propertyId": "prop-1",
+      "ownerId": "owner-1",
+      "title": "AC Repair - Luxury Downtown Apartment",
+      "description": "Repair or replace malfunctioning AC unit in bedroom",
+      "assignedTeam": "HVAC Specialists Inc.",
+      "status": "in_progress",
+      "priority": "high",
+      "createdAt": "2024-02-16T11:00:00Z",
+      "updatedAt": "2024-02-16T14:00:00Z",
+      "estimatedCompletion": "2024-02-16T18:00:00Z",
+      "notes": "Technician dispatched, parts ordered",
+      "createdBy": "pm-1"
+    }
+  ]
+}

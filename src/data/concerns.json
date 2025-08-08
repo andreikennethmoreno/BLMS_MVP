@@ -1,0 +1,26 @@
+{
+  "concerns": [
+    {
+      "id": "concern-1",
+      "bookingId": "booking-1",
+      "propertyId": "prop-1",
+      "customerId": "customer-1",
+      "ownerId": "owner-1",
+      "title": "Air conditioning not working",
+      "description": "The AC unit in the bedroom is not cooling properly. Room temperature is quite warm.",
+      "status": "pending",
+      "priority": "high",
+      "createdAt": "2024-02-16T10:30:00Z",
+      "customerName": "John Smith",
+      "messages": [
+        {
+          "id": "msg-1",
+          "senderId": "customer-1",
+          "senderName": "John Smith",
+          "message": "The AC has been making strange noises and not cooling for the past 2 hours.",
+          "timestamp": "2024-02-16T10:30:00Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "formTemplates": [
+    {
+      "id": "template-1",
+      "name": "Property Rental Contract",
+      "description": "Standard rental agreement template for property owners",
+      "category": "contracts",
+      "fields": [
+        {
+          "id": "property_name",
+          "label": "Property Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "owner_name",
+          "label": "Owner Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "rental_rate",
+          "label": "Rental Rate (per night)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "id": "commission_rate",
+          "label": "Platform Commission (%)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "id": "terms",
+          "label": "Additional Terms",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "createdAt": "2024-01-01T00:00:00Z",
+      "createdBy": "pm-1"
+    },
+    {
+      "id": "template-2",
+      "name": "Property Inspection Checklist",
+      "description": "Comprehensive checklist for property inspections",
+      "category": "inspections",
+      "fields": [
+        {
+          "id": "property_address",
+          "label": "Property Address",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "inspection_date",
+          "label": "Inspection Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "id": "cleanliness_rating",
+          "label": "Cleanliness Rating (1-5)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "id": "amenities_check",
+          "label": "Amenities Functional",
+          "type": "checkbox",
+          "required": true
+        },
+        {
+          "id": "notes",
+          "label": "Inspector Notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "createdAt": "2024-01-15T00:00:00Z",
+      "createdBy": "pm-1"
+    }
+  ]
+}
