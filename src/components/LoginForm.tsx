@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import RegistrationForm from './RegistrationForm';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [showRegistration, setShowRegistration] = useState(false);
   const { login } = useAuth();
+
+  if (showRegistration) {
+    return <RegistrationForm onSwitchToLogin={() => setShowRegistration(false)} />;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +109,18 @@ const LoginForm: React.FC = () => {
               Sign In
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Don't have an account?{' '}
+              <button
+                onClick={() => setShowRegistration(true)}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Sign up here
+              </button>
+            </p>
+          </div>
 
           <div className="mt-8">
             <div className="text-sm text-gray-500 text-center mb-4">

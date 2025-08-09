@@ -13,6 +13,62 @@
       "bookedAt": "2024-01-28T00:00:00Z",
       "customerName": "John Smith",
       "customerEmail": "customer@example.com"
+    },
+    {
+      "id": "booking-2",
+      "propertyId": "prop-2",
+      "customerId": "customer-2",
+      "checkIn": "2024-02-10",
+      "checkOut": "2024-02-13",
+      "guests": 4,
+      "totalAmount": 705,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "bookedAt": "2024-01-25T00:00:00Z",
+      "customerName": "Alice Johnson",
+      "customerEmail": "alice@example.com"
+    },
+    {
+      "id": "booking-3",
+      "propertyId": "prop-1",
+      "customerId": "customer-2",
+      "checkIn": "2024-03-01",
+      "checkOut": "2024-03-04",
+      "guests": 2,
+      "totalAmount": 495,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "bookedAt": "2024-02-15T00:00:00Z",
+      "customerName": "Alice Johnson",
+      "customerEmail": "alice@example.com"
+    },
+    {
+      "id": "booking-4",
+      "propertyId": "prop-4",
+      "customerId": "customer-1",
+      "checkIn": "2024-02-20",
+      "checkOut": "2024-02-22",
+      "guests": 1,
+      "totalAmount": 260,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "bookedAt": "2024-02-10T00:00:00Z",
+      "customerName": "John Smith",
+      "customerEmail": "customer@example.com"
+    },
+    {
+      "id": "booking-5",
+      "propertyId": "prop-5",
+      "customerId": "customer-2",
+      "checkIn": "2024-02-25",
+      "checkOut": "2024-02-28",
+      "guests": 3,
+      "totalAmount": 600,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "bookedAt": "2024-02-18T00:00:00Z",
+      "customerName": "Alice Johnson",
+      "customerEmail": "alice@example.com"
     }
   ]
 }

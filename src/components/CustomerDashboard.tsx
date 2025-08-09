@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ReviewSystem from './ReviewSystem';
 import propertiesData from '../data/properties.json';
+import BookingAvailabilityCalendar from './BookingAvailabilityCalendar';
 import bookingsData from '../data/bookings.json';
 import usersData from '../data/users.json';
 
@@ -47,6 +48,7 @@ const CustomerDashboard: React.FC = () => {
   const [guests, setGuests] = useState(1);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const properties = propertiesData.properties.filter((p: Property) => p.status === 'approved');
   const users = usersData.users;
@@ -74,6 +76,25 @@ const CustomerDashboard: React.FC = () => {
 
   const getPropertyBookings = (propertyId: string) => {
     return bookings.filter((b: Booking) => b.propertyId === propertyId && b.status === 'confirmed');
+  };
+
+  const getBookedDatesForProperty = (propertyId: string) => {
+    const propertyBookings = getPropertyBookings(propertyId);
+    const bookedDates: string[] = [];
+    
+    propertyBookings.forEach((booking: Booking) => {
+      const startDate = new Date(booking.checkIn);
+      const endDate = new Date(booking.checkOut);
+      
+      // Add all dates from check-in to check-out (exclusive of check-out)
+      const currentDate = new Date(startDate);
+      while (currentDate < endDate) {
+        bookedDates.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    });
+    
+    return bookedDates;
   };
 
   const isDateRangeAvailable = (propertyId: string, checkInDate: string, checkOutDate: string) => {
@@ -544,36 +565,65 @@ const CustomerDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-4 mb-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Check-in
-                        </label>
-                        <input
-                          type="date"
-                          value={checkIn}
-                          onChange={(e) => setCheckIn(e.target.value)}
-                          min={new Date().toISOString().split("T")[0]}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Check-out
-                        </label>
-                        <input
-                          type="date"
-                          value={checkOut}
-                          onChange={(e) => setCheckOut(e.target.value)}
-                          min={
-                            checkIn || new Date().toISOString().split("T")[0]
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                      </div>
+                  {/* Date Selection */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Select Dates
+                      </label>
+                      <button
+                        onClick={() => setShowCalendar(!showCalendar)}
+                        className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                      >
+                        {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+                      </button>
                     </div>
 
+                    {showCalendar ? (
+                      <BookingAvailabilityCalendar
+                        propertyId={selectedProperty.id}
+                        bookedDates={getBookedDatesForProperty(selectedProperty.id)}
+                        selectedCheckIn={checkIn}
+                        selectedCheckOut={checkOut}
+                        onDateSelect={(checkInDate, checkOutDate) => {
+                          setCheckIn(checkInDate);
+                          setCheckOut(checkOutDate);
+                        }}
+                        minNights={1}
+                      />
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Check-in
+                          </label>
+                          <input
+                            type="date"
+                            value={checkIn}
+                            onChange={(e) => setCheckIn(e.target.value)}
+                            min={new Date().toISOString().split("T")[0]}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Check-out
+                          </label>
+                          <input
+                            type="date"
+                            value={checkOut}
+                            onChange={(e) => setCheckOut(e.target.value)}
+                            min={
+                              checkIn || new Date().toISOString().split("T")[0]
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Guests
