@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Search, Mail, CheckCircle, XCircle, Clock, Building, Calendar } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import ContractTemplateEditor from './ContractTemplateEditor';
 import usersData from '../data/users.json';
 import propertiesData from '../data/properties.json';
 import bookingsData from '../data/bookings.json';
@@ -16,10 +17,12 @@ interface User {
 
 const PropertyManagerOwners: React.FC = () => {
   const [users, setUsers] = useLocalStorage('users', usersData.users);
+  const [contracts, setContracts] = useLocalStorage('contracts', []);
   const [properties] = useLocalStorage('properties', propertiesData.properties);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOwner, setSelectedOwner] = useState<User | null>(null);
+  const [showContractSelection, setShowContractSelection] = useState<User | null>(null);
 
   const bookings = bookingsData.bookings;
   const unitOwners = users.filter((u: User) => u.role === 'unit_owner');
@@ -45,6 +48,36 @@ const PropertyManagerOwners: React.FC = () => {
       u.id === ownerId ? { ...u, verified: true } : u
     );
     setUsers(updatedUsers);
+    
+    // Show contract selection for newly verified owner
+    const owner = users.find((u: User) => u.id === ownerId);
+    if (owner) {
+      setShowContractSelection(owner);
+    }
+  };
+
+  const handleContractSelection = (template: any) => {
+    if (!showContractSelection) return;
+    
+    // Create contract for the owner
+    const newContract = {
+      id: `contract-${Date.now()}`,
+      templateId: template.id,
+      ownerId: showContractSelection.id,
+      ownerName: showContractSelection.name,
+      ownerEmail: showContractSelection.email,
+      templateName: template.name,
+      terms: template.description,
+      commissionPercentage: template.commissionPercentage,
+      fields: template.fields,
+      status: 'sent',
+      sentAt: new Date().toISOString()
+    };
+    
+    setContracts([...contracts, newContract]);
+    setShowContractSelection(null);
+    
+    alert(`Contract "${template.name}" has been sent to ${showContractSelection.name}`);
   };
 
   const filteredOwners = unitOwners.filter((owner: User) => {
@@ -415,6 +448,33 @@ const PropertyManagerOwners: React.FC = () => {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contract Selection Modal */}
+      {showContractSelection && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Send Contract</h3>
+                  <p className="text-gray-600">Select a contract template to send to {showContractSelection.name}</p>
+                </div>
+                <button
+                  onClick={() => setShowContractSelection(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <ContractTemplateEditor 
+                showSelector={true}
+                onSelectTemplate={handleContractSelection}
+              />
             </div>
           </div>
         </div>

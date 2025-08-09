@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Building, Clock, CheckCircle, XCircle, FileText, Upload, Eye, Edit } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import ContractReviewSystem from './ContractReviewSystem';
 import propertiesData from '../data/properties.json';
 import contractsData from '../data/contracts.json';
 import bookingsData from '../data/bookings.json';
@@ -58,6 +59,7 @@ const UnitOwnerDashboard: React.FC = () => {
   const bookings = bookingsData.bookings;
   const ownerProperties = properties.filter((p: Property) => p.ownerId === user?.id);
   const ownerContracts = contracts.filter((c: Contract) => c.ownerId === user?.id);
+  const pendingContracts = ownerContracts.filter((c: Contract) => c.status === 'sent');
   const ownerBookings = bookings.filter(booking => 
     ownerProperties.some(prop => prop.id === booking.propertyId)
   );
@@ -212,9 +214,7 @@ const UnitOwnerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending Contracts</p>
-              <p className="text-3xl font-bold text-orange-600">
-                {ownerContracts.filter((c: Contract) => c.status === 'sent').length}
-              </p>
+              <p className="text-3xl font-bold text-orange-600">{pendingContracts.length}</p>
             </div>
             <FileText className="w-8 h-8 text-orange-600" />
           </div>
@@ -222,39 +222,16 @@ const UnitOwnerDashboard: React.FC = () => {
       </div>
 
       {/* Pending Contracts */}
-      {ownerContracts.filter((c: Contract) => c.status === 'sent').length > 0 && (
+      {pendingContracts.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-orange-500" />
-              Contracts Requiring Action
+              Contract Review Required
             </h2>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {ownerContracts
-                .filter((c: Contract) => c.status === 'sent')
-                .map((contract: Contract) => {
-                  const property = properties.find((p: Property) => p.id === contract.propertyId);
-                  return (
-                    <div key={contract.id} className="border border-orange-200 rounded-lg p-4 bg-orange-50">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{property?.title}</h3>
-                          <p className="text-gray-600">Final Rate: ${contract.finalRate}/night</p>
-                          <p className="text-sm text-gray-500">Contract sent: {new Date(contract.sentAt).toLocaleDateString()}</p>
-                        </div>
-                        <button
-                          onClick={() => setSelectedContract(contract)}
-                          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors"
-                        >
-                          Review Contract
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
+            <ContractReviewSystem />
           </div>
         </div>
       )}
@@ -314,8 +291,6 @@ const UnitOwnerDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* New Property Form Modal */}
-      {showNewPropertyForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -499,60 +474,6 @@ const UnitOwnerDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Contract Review Modal */}
-      {selectedContract && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <h3 className="text-2xl font-semibold text-gray-900">Contract Review</h3>
-                <button
-                  onClick={() => setSelectedContract(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XCircle className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Property</h4>
-                  <p className="text-gray-600">
-                    {properties.find((p: Property) => p.id === selectedContract.propertyId)?.title}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Final Rate</h4>
-                  <p className="text-2xl font-bold text-emerald-600">${selectedContract.finalRate}/night</p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Contract Terms</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-700">{selectedContract.terms}</p>
-                  </div>
-                </div>
-
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => rejectContract(selectedContract.id)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
-                  >
-                    Reject Contract
-                  </button>
-                  <button
-                    onClick={() => acceptContract(selectedContract.id)}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition-colors"
-                  >
-                    Accept Contract
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

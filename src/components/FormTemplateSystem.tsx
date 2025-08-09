@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, Plus, Download, Edit, Trash2, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import ContractTemplateEditor from './ContractTemplateEditor';
 import formTemplatesData from '../data/formTemplates.json';
 
 interface FormField {
@@ -162,9 +163,19 @@ const FormTemplateSystem: React.FC = () => {
         )}
       </div>
 
+      {/* Contract Templates Section */}
+      {user?.role === 'property_manager' && (
+        <div className="mb-8">
+          <ContractTemplateEditor />
+        </div>
+      )}
+
       {/* Templates Grid */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">Other Form Templates</h2>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {templates.map((template: FormTemplate) => (
+        {templates.filter((t: FormTemplate) => t.category !== 'contracts').map((template: FormTemplate) => (
           <div key={template.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -219,7 +230,7 @@ const FormTemplateSystem: React.FC = () => {
         ))}
       </div>
 
-      {templates.length === 0 && (
+      {templates.filter((t: FormTemplate) => t.category !== 'contracts').length === 0 && (
         <div className="text-center py-12">
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500">No form templates created yet</p>

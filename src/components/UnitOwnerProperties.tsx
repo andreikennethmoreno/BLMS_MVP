@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Building, Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import PropertyAppealSystem from './PropertyAppealSystem';
+import PropertyEditSystem from './PropertyEditSystem';
 import propertiesData from '../data/properties.json';
 
 interface Property {
@@ -26,6 +28,7 @@ const UnitOwnerProperties: React.FC = () => {
   const { user } = useAuth();
   const [properties] = useLocalStorage('properties', propertiesData.properties);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
 
   const ownerProperties = properties.filter((p: Property) => p.ownerId === user?.id);
 
@@ -182,18 +185,32 @@ const UnitOwnerProperties: React.FC = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => setSelectedProperty(property)}
-                        className="flex-1 flex items-center justify-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                        className="flex items-center justify-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
                       </button>
+                      
+                      {(property.status === 'approved' || property.status === 'rejected') && (
+                        <button
+                          onClick={() => setEditingProperty(property)}
+                          className="flex items-center justify-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                          <span>Edit</span>
+                        </button>
+                      )}
                     </div>
 
-                    {property.rejectionReason && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-800">
-                          <strong>Rejection Reason:</strong> {property.rejectionReason}
-                        </p>
+                    {property.status === 'rejected' && (
+                      <div className="mt-4">
+                        <PropertyAppealSystem 
+                          property={property}
+                          onAppealSubmitted={() => {
+                            // Refresh the view or show success message
+                            alert('Appeal submitted successfully! Your property is now pending review.');
+                          }}
+                        />
                       </div>
                     )}
                   </div>
@@ -328,6 +345,37 @@ const UnitOwnerProperties: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Property Edit Modal */}
+      {editingProperty && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Edit Property</h3>
+                  <p className="text-gray-600">Make changes to your property listing</p>
+                </div>
+                <button
+                  onClick={() => setEditingProperty(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <PropertyEditSystem 
+                property={editingProperty}
+                onEditSubmitted={() => {
+                  setEditingProperty(null);
+                  alert('Property updated successfully! It will be reviewed again before going live.');
+                }}
+                onCancel={() => setEditingProperty(null)}
+              />
             </div>
           </div>
         </div>

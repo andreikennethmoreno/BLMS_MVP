@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/LoginForm';
-import Navigation from './components/Navigation';
+import Sidebar from './components/Sidebar';
 import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
 import PropertyManagerOwners from './components/PropertyManagerOwners';
@@ -19,6 +19,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   if (!isAuthenticated) {
     return <LoginForm />;
@@ -82,9 +83,16 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation currentView={currentView} onViewChange={setCurrentView} />
-      {renderContent()}
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar 
+        currentView={currentView} 
+        onViewChange={setCurrentView}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      <div className="flex-1 overflow-hidden">
+        {renderContent()}
+      </div>
     </div>
   );
 };
