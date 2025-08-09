@@ -1,18 +1,18 @@
-import React from 'react';
-import { 
-  Home, 
-  Building, 
-  Users, 
-  Calendar, 
-  AlertTriangle, 
-  Wrench, 
-  FileText, 
+import React from "react";
+import {
+  Home,
+  Building,
+  Users,
+  Calendar,
+  AlertTriangle,
+  Wrench,
+  FileText,
   BarChart3,
-  Settings,
   ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+  ChevronRight,
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SidebarProps {
   currentView: string;
@@ -21,40 +21,40 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ 
-  currentView, 
-  onViewChange, 
-  isCollapsed, 
-  onToggleCollapse 
+const Sidebar: React.FC<SidebarProps> = ({
+  currentView,
+  onViewChange,
+  isCollapsed,
+  onToggleCollapse,
 }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const getNavigationItems = () => {
     switch (user?.role) {
-      case 'property_manager':
+      case "property_manager":
         return [
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'properties', label: 'Properties', icon: Building },
-          { id: 'owners', label: 'Unit Owners', icon: Users },
-          { id: 'bookings', label: 'Bookings', icon: Calendar },
-          { id: 'concerns', label: 'Concerns', icon: AlertTriangle },
-          { id: 'jobs', label: 'Job Orders', icon: Wrench },
-          { id: 'forms', label: 'Form Templates', icon: FileText },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+          { id: "dashboard", label: "Dashboard", icon: Home },
+          { id: "properties", label: "Properties", icon: Building },
+          { id: "owners", label: "Unit Owners", icon: Users },
+          { id: "bookings", label: "Bookings", icon: Calendar },
+          { id: "concerns", label: "Concerns", icon: AlertTriangle },
+          { id: "jobs", label: "Job Orders", icon: Wrench },
+          { id: "forms", label: "Form Templates", icon: FileText },
+          { id: "analytics", label: "Analytics", icon: BarChart3 },
         ];
-      case 'unit_owner':
+      case "unit_owner":
         return [
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'properties', label: 'My Properties', icon: Building },
-          { id: 'bookings', label: 'Bookings', icon: Calendar },
-          { id: 'concerns', label: 'Concerns', icon: AlertTriangle },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+          { id: "dashboard", label: "Dashboard", icon: Home },
+          { id: "properties", label: "My Properties", icon: Building },
+          { id: "bookings", label: "Bookings", icon: Calendar },
+          { id: "concerns", label: "Concerns", icon: AlertTriangle },
+          { id: "analytics", label: "Analytics", icon: BarChart3 },
         ];
-      case 'customer':
+      case "customer":
         return [
-          { id: 'browse', label: 'Browse Properties', icon: Home },
-          { id: 'bookings', label: 'My Bookings', icon: Calendar },
-          { id: 'concerns', label: 'Report Issues', icon: AlertTriangle }
+          { id: "browse", label: "Browse Properties", icon: Home },
+          { id: "bookings", label: "My Bookings", icon: Calendar },
+          { id: "concerns", label: "Report Issues", icon: AlertTriangle },
         ];
       default:
         return [];
@@ -63,30 +63,30 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const getRoleColor = () => {
     switch (user?.role) {
-      case 'property_manager':
-        return 'bg-blue-600';
-      case 'unit_owner':
-        return 'bg-emerald-600';
-      case 'customer':
-        return 'bg-purple-600';
+      case "property_manager":
+        return "bg-blue-600";
+      case "unit_owner":
+        return "bg-emerald-600";
+      case "customer":
+        return "bg-purple-600";
       default:
-        return 'bg-gray-600';
+        return "bg-gray-600";
     }
   };
 
   const navigationItems = getNavigationItems();
 
   return (
-    <div className={`bg-white shadow-lg border-r border-gray-200 transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    } flex flex-col h-full`}>
+    <div
+      className={`bg-white shadow-lg border-r border-gray-200 transition-all duration-300 ${
+        isCollapsed ? "w-16" : "w-64"
+      } flex flex-col h-full`}
+    >
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <div className="text-xl font-bold text-gray-900">
-              HotelPlatform
-            </div>
+            <div className="text-xl font-bold text-gray-900">HotelPlatform</div>
           )}
           <button
             onClick={onToggleCollapse}
@@ -101,13 +101,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
+
       {/* Navigation Items */}
       <nav className="flex-1 p-4">
         <div className="space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
-            
+
             return (
               <button
                 key={item.id}
@@ -115,36 +116,76 @@ const Sidebar: React.FC<SidebarProps> = ({
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   isActive
                     ? `${getRoleColor()} text-white`
-                    : 'text-gray-600 hover:bg-gray-100'
-                } ${isCollapsed ? 'justify-center' : ''}`}
+                    : "text-gray-600 hover:bg-gray-100"
+                } ${isCollapsed ? "justify-center" : ""}`}
                 title={isCollapsed ? item.label : undefined}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
-                {!isCollapsed && <span className="font-medium">{item.label}</span>}
+                {!isCollapsed && (
+                  <span className="font-medium">{item.label}</span>
+                )}
               </button>
             );
           })}
         </div>
       </nav>
 
-      {/* User Info */}
-      {!isCollapsed && (
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 ${getRoleColor()} rounded-full flex items-center justify-center`}>
-              <span className="text-white font-semibold text-sm">
-                {user?.name.charAt(0)}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-gray-900 truncate">{user?.name}</div>
-              <div className="text-sm text-gray-500 capitalize truncate">
-                {user?.role?.replace('_', ' ')}
+      {/* Auth & User Info Section */}
+      <div className="p-4 border-t border-gray-200">
+        {user ? (
+          <>
+            {/* Logout Button */}
+            <button
+              onClick={logout}
+              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors 
+                text-gray-600 hover:bg-gray-100 ${
+                  isCollapsed ? "justify-center" : ""
+                }`}
+            >
+              <LogOut className="w-5 h-5" />
+              {!isCollapsed && <span className="font-medium">Logout</span>}
+            </button>
+
+            {/* User Info */}
+            {!isCollapsed && (
+              <div className="mt-4 flex items-center space-x-3">
+                <div
+                  className={`w-10 h-10 ${getRoleColor()} rounded-full flex items-center justify-center`}
+                >
+                  <span className="text-white font-semibold text-sm">
+                    {user?.name?.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">
+                    {user?.name}
+                  </div>
+                  <div className="text-sm text-gray-500 capitalize truncate">
+                    {user?.role?.replace("_", " ")}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            )}
+          </>
+        ) : (
+          /* Login Button */
+          <button
+            onClick={() => onViewChange("login")}
+            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
+              bg-blue-600 text-white hover:bg-blue-700 ${
+                isCollapsed ? "justify-center" : ""
+              }`}
+          >
+            {isCollapsed ? (
+              <span role="img" aria-label="login">
+                🔑
+              </span>
+            ) : (
+              <span className="font-medium">Login</span>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

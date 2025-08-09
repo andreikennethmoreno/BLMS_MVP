@@ -15,6 +15,7 @@ import ConcernSystem from './components/ConcernSystem';
 import JobOrderSystem from './components/JobOrderSystem';
 import FormTemplateSystem from './components/FormTemplateSystem';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import Navigation from './components/Navigation';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -83,17 +84,28 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar 
-        currentView={currentView} 
-        onViewChange={setCurrentView}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
-      <div className="flex-1 overflow-hidden">
-        {renderContent()}
-      </div>
-    </div>
+    <>
+      {user?.role === "customer" ? (
+        // Customer Navigation
+        <Navigation currentView={currentView} onViewChange={setCurrentView} />
+      ) : (
+        // Non-Customer Sidebar Layout
+        <div className="min-h-screen bg-gray-50 flex">
+          <Sidebar
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+          <div className="flex-1 overflow-hidden">{renderContent()}</div>
+        </div>
+      )}
+
+      {/* Render content for customers under the navigation bar */}
+      {user?.role === "customer" && (
+        <div className="flex-1 overflow-hidden">{renderContent()}</div>
+      )}
+    </>
   );
 };
 

@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
-import { Plus, Building, Clock, CheckCircle, XCircle, FileText, Upload, Eye, Edit } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import ContractReviewSystem from './ContractReviewSystem';
-import propertiesData from '../data/properties.json';
-import contractsData from '../data/contracts.json';
-import bookingsData from '../data/bookings.json';
+import React, { useState } from "react";
+import {
+  Plus,
+  Building,
+  Clock,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Upload,
+  Eye,
+  Edit,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import ContractReviewSystem from "./ContractReviewSystem";
+import propertiesData from "../data/properties.json";
+import contractsData from "../data/contracts.json";
+import bookingsData from "../data/bookings.json";
 
 interface Property {
   id: string;
@@ -40,110 +50,145 @@ interface Contract {
 
 const UnitOwnerDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [properties, setProperties] = useLocalStorage('properties', propertiesData.properties);
-  const [contracts, setContracts] = useLocalStorage('contracts', contractsData.contracts);
+  const [properties, setProperties] = useLocalStorage(
+    "properties",
+    propertiesData.properties
+  );
+  const [contracts, setContracts] = useLocalStorage(
+    "contracts",
+    contractsData.contracts
+  );
   const [showNewPropertyForm, setShowNewPropertyForm] = useState(false);
-  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(
+    null
+  );
   const [newProperty, setNewProperty] = useState({
-    title: '',
-    description: '',
-    address: '',
-    images: [''],
-    amenities: [''],
+    title: "",
+    description: "",
+    address: "",
+    images: [""],
+    amenities: [""],
     bedrooms: 1,
     bathrooms: 1,
     maxGuests: 1,
-    proposedRate: 100
+    proposedRate: 100,
   });
 
   const bookings = bookingsData.bookings;
-  const ownerProperties = properties.filter((p: Property) => p.ownerId === user?.id);
-  const ownerContracts = contracts.filter((c: Contract) => c.ownerId === user?.id);
-  const pendingContracts = ownerContracts.filter((c: Contract) => c.status === 'sent');
-  const ownerBookings = bookings.filter(booking => 
-    ownerProperties.some(prop => prop.id === booking.propertyId)
+  const ownerProperties = properties.filter(
+    (p: Property) => p.ownerId === user?.id
+  );
+  const ownerContracts = contracts.filter(
+    (c: Contract) => c.ownerId === user?.id
+  );
+  const pendingContracts = ownerContracts.filter(
+    (c: Contract) => c.status === "sent"
+  );
+  const ownerBookings = bookings.filter((booking) =>
+    ownerProperties.some((prop) => prop.id === booking.propertyId)
   );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending_review': return 'text-orange-600 bg-orange-100';
-      case 'approved': return 'text-emerald-600 bg-emerald-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
-      case 'pending_contract': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case "pending_review":
+        return "text-orange-600 bg-orange-100";
+      case "approved":
+        return "text-emerald-600 bg-emerald-100";
+      case "rejected":
+        return "text-red-600 bg-red-100";
+      case "pending_contract":
+        return "text-blue-600 bg-blue-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending_review': return 'Pending Review';
-      case 'approved': return 'Live & Bookable';
-      case 'rejected': return 'Rejected';
-      case 'pending_contract': return 'Contract Pending';
-      default: return status;
+      case "pending_review":
+        return "Pending Review";
+      case "approved":
+        return "Live & Bookable";
+      case "rejected":
+        return "Rejected";
+      case "pending_contract":
+        return "Contract Pending";
+      default:
+        return status;
     }
+  };
+
+  const handleCloseForm = () => {
+    setShowNewPropertyForm(false);
+    // Reset form data when closing
+    setNewProperty({
+      title: "",
+      description: "",
+      address: "",
+      images: [""],
+      amenities: [""],
+      bedrooms: 1,
+      bathrooms: 1,
+      maxGuests: 1,
+      proposedRate: 100,
+    });
   };
 
   const handleSubmitProperty = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const property = {
       id: `prop-${Date.now()}`,
-      ownerId: user?.id || '',
+      ownerId: user?.id || "",
       ...newProperty,
-      images: newProperty.images.filter(img => img.trim() !== ''),
-      amenities: newProperty.amenities.filter(amenity => amenity.trim() !== ''),
-      status: 'pending_review',
+      images: newProperty.images.filter((img) => img.trim() !== ""),
+      amenities: newProperty.amenities.filter(
+        (amenity) => amenity.trim() !== ""
+      ),
+      status: "pending_review",
       submittedAt: new Date().toISOString(),
-      finalRate: null
+      finalRate: null,
     };
 
     setProperties([...properties, property]);
-    setShowNewPropertyForm(false);
-    setNewProperty({
-      title: '',
-      description: '',
-      address: '',
-      images: [''],
-      amenities: [''],
-      bedrooms: 1,
-      bathrooms: 1,
-      maxGuests: 1,
-      proposedRate: 100
-    });
+    handleCloseForm();
   };
 
   const addImageField = () => {
-    setNewProperty(prev => ({
+    setNewProperty((prev) => ({
       ...prev,
-      images: [...prev.images, '']
+      images: [...prev.images, ""],
     }));
   };
 
   const updateImage = (index: number, value: string) => {
-    setNewProperty(prev => ({
+    setNewProperty((prev) => ({
       ...prev,
-      images: prev.images.map((img, i) => i === index ? value : img)
+      images: prev.images.map((img, i) => (i === index ? value : img)),
     }));
   };
 
   const addAmenityField = () => {
-    setNewProperty(prev => ({
+    setNewProperty((prev) => ({
       ...prev,
-      amenities: [...prev.amenities, '']
+      amenities: [...prev.amenities, ""],
     }));
   };
 
   const updateAmenity = (index: number, value: string) => {
-    setNewProperty(prev => ({
+    setNewProperty((prev) => ({
       ...prev,
-      amenities: prev.amenities.map((amenity, i) => i === index ? value : amenity)
+      amenities: prev.amenities.map((amenity, i) =>
+        i === index ? value : amenity
+      ),
     }));
   };
 
   const acceptContract = (contractId: string) => {
-    const updatedContracts = contracts.map((c: Contract) => 
-      c.id === contractId ? { ...c, status: 'accepted', acceptedAt: new Date().toISOString() } : c
+    const updatedContracts = contracts.map((c: Contract) =>
+      c.id === contractId
+        ? { ...c, status: "accepted", acceptedAt: new Date().toISOString() }
+        : c
     );
     setContracts(updatedContracts);
 
@@ -151,11 +196,13 @@ const UnitOwnerDashboard: React.FC = () => {
     const contract = contracts.find((c: Contract) => c.id === contractId);
     if (contract) {
       const updatedProperties = properties.map((p: Property) =>
-        p.id === contract.propertyId ? { 
-          ...p, 
-          status: 'approved',
-          contractAcceptedAt: new Date().toISOString()
-        } : p
+        p.id === contract.propertyId
+          ? {
+              ...p,
+              status: "approved",
+              contractAcceptedAt: new Date().toISOString(),
+            }
+          : p
       );
       setProperties(updatedProperties);
     }
@@ -164,8 +211,8 @@ const UnitOwnerDashboard: React.FC = () => {
   };
 
   const rejectContract = (contractId: string) => {
-    const updatedContracts = contracts.map((c: Contract) => 
-      c.id === contractId ? { ...c, status: 'rejected' } : c
+    const updatedContracts = contracts.map((c: Contract) =>
+      c.id === contractId ? { ...c, status: "rejected" } : c
     );
     setContracts(updatedContracts);
     setSelectedContract(null);
@@ -176,8 +223,12 @@ const UnitOwnerDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Unit Owner Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manage your properties and bookings</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Unit Owner Dashboard
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Manage your properties and bookings
+          </p>
         </div>
         <button
           onClick={() => setShowNewPropertyForm(true)}
@@ -194,7 +245,9 @@ const UnitOwnerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">My Properties</p>
-              <p className="text-3xl font-bold text-emerald-600">{ownerProperties.length}</p>
+              <p className="text-3xl font-bold text-emerald-600">
+                {ownerProperties.length}
+              </p>
             </div>
             <Building className="w-8 h-8 text-emerald-600" />
           </div>
@@ -204,7 +257,9 @@ const UnitOwnerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Bookings</p>
-              <p className="text-3xl font-bold text-blue-600">{ownerBookings.length}</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {ownerBookings.length}
+              </p>
             </div>
             <CheckCircle className="w-8 h-8 text-blue-600" />
           </div>
@@ -214,7 +269,9 @@ const UnitOwnerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending Contracts</p>
-              <p className="text-3xl font-bold text-orange-600">{pendingContracts.length}</p>
+              <p className="text-3xl font-bold text-orange-600">
+                {pendingContracts.length}
+              </p>
             </div>
             <FileText className="w-8 h-8 text-orange-600" />
           </div>
@@ -256,7 +313,10 @@ const UnitOwnerDashboard: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {ownerProperties.map((property: Property) => (
-                <div key={property.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                <div
+                  key={property.id}
+                  className="border border-gray-200 rounded-lg overflow-hidden"
+                >
                   <img
                     src={property.images[0]}
                     alt={property.title}
@@ -264,14 +324,22 @@ const UnitOwnerDashboard: React.FC = () => {
                   />
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{property.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(property.status)}`}>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {property.title}
+                      </h3>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          property.status
+                        )}`}
+                      >
                         {getStatusText(property.status)}
                       </span>
                     </div>
                     <p className="text-gray-600 mb-3">{property.address}</p>
                     <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>{property.bedrooms} bed • {property.bathrooms} bath</span>
+                      <span>
+                        {property.bedrooms} bed • {property.bathrooms} bath
+                      </span>
                       <span className="font-medium text-emerald-600">
                         ${property.finalRate || property.proposedRate}/night
                       </span>
@@ -279,7 +347,8 @@ const UnitOwnerDashboard: React.FC = () => {
                     {property.rejectionReason && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-800">
-                          <strong>Rejection Reason:</strong> {property.rejectionReason}
+                          <strong>Rejection Reason:</strong>{" "}
+                          {property.rejectionReason}
                         </p>
                       </div>
                     )}
@@ -291,14 +360,18 @@ const UnitOwnerDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* New Property Form Modal */}
+      {showNewPropertyForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-semibold text-gray-900">Add New Property</h3>
+                <h3 className="text-2xl font-semibold text-gray-900">
+                  Add New Property
+                </h3>
                 <button
-                  onClick={() => setShowNewPropertyForm(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  onClick={handleCloseForm}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <XCircle className="w-6 h-6" />
                 </button>
@@ -313,7 +386,12 @@ const UnitOwnerDashboard: React.FC = () => {
                     <input
                       type="text"
                       value={newProperty.title}
-                      onChange={(e) => setNewProperty(prev => ({ ...prev, title: e.target.value }))}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       required
                     />
@@ -325,7 +403,12 @@ const UnitOwnerDashboard: React.FC = () => {
                     </label>
                     <textarea
                       value={newProperty.description}
-                      onChange={(e) => setNewProperty(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       rows={3}
                       required
@@ -339,7 +422,12 @@ const UnitOwnerDashboard: React.FC = () => {
                     <input
                       type="text"
                       value={newProperty.address}
-                      onChange={(e) => setNewProperty(prev => ({ ...prev, address: e.target.value }))}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          address: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       required
                     />
@@ -353,7 +441,12 @@ const UnitOwnerDashboard: React.FC = () => {
                       type="number"
                       min="1"
                       value={newProperty.bedrooms}
-                      onChange={(e) => setNewProperty(prev => ({ ...prev, bedrooms: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          bedrooms: Number(e.target.value),
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
@@ -366,7 +459,12 @@ const UnitOwnerDashboard: React.FC = () => {
                       type="number"
                       min="1"
                       value={newProperty.bathrooms}
-                      onChange={(e) => setNewProperty(prev => ({ ...prev, bathrooms: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          bathrooms: Number(e.target.value),
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
@@ -379,7 +477,12 @@ const UnitOwnerDashboard: React.FC = () => {
                       type="number"
                       min="1"
                       value={newProperty.maxGuests}
-                      onChange={(e) => setNewProperty(prev => ({ ...prev, maxGuests: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          maxGuests: Number(e.target.value),
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
@@ -389,12 +492,19 @@ const UnitOwnerDashboard: React.FC = () => {
                       Proposed Rate (per night)
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-500">$</span>
+                      <span className="absolute left-3 top-3 text-gray-500">
+                        $
+                      </span>
                       <input
                         type="number"
                         min="1"
                         value={newProperty.proposedRate}
-                        onChange={(e) => setNewProperty(prev => ({ ...prev, proposedRate: Number(e.target.value) }))}
+                        onChange={(e) =>
+                          setNewProperty((prev) => ({
+                            ...prev,
+                            proposedRate: Number(e.target.value),
+                          }))
+                        }
                         className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
                     </div>
@@ -456,7 +566,7 @@ const UnitOwnerDashboard: React.FC = () => {
                 <div className="flex space-x-4">
                   <button
                     type="button"
-                    onClick={() => setShowNewPropertyForm(false)}
+                    onClick={handleCloseForm}
                     className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors"
                   >
                     Cancel
@@ -472,6 +582,7 @@ const UnitOwnerDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
     </div>
   );
 };

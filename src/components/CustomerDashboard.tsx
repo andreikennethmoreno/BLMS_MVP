@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ReviewSystem from './ReviewSystem';
@@ -169,8 +169,12 @@ const CustomerDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Find Your Perfect Stay</h1>
-        <p className="text-gray-600 mt-2">Discover amazing properties for your next trip</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Find Your Perfect Stay
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Discover amazing properties for your next trip
+        </p>
       </div>
 
       {/* Search and Filters */}
@@ -199,7 +203,7 @@ const CustomerDashboard: React.FC = () => {
               type="date"
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date().toISOString().split("T")[0]}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
@@ -213,7 +217,7 @@ const CustomerDashboard: React.FC = () => {
               type="date"
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              min={checkIn || new Date().toISOString().split('T')[0]}
+              min={checkIn || new Date().toISOString().split("T")[0]}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
@@ -228,8 +232,10 @@ const CustomerDashboard: React.FC = () => {
               onChange={(e) => setGuests(Number(e.target.value))}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                <option key={num} value={num}>{num} Guest{num > 1 ? 's' : ''}</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                <option key={num} value={num}>
+                  {num} Guest{num > 1 ? "s" : ""}
+                </option>
               ))}
             </select>
           </div>
@@ -245,21 +251,31 @@ const CustomerDashboard: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {customerBookings.map((booking: Booking) => {
-                const property = properties.find((p: Property) => p.id === booking.propertyId);
+                const property = properties.find(
+                  (p: Property) => p.id === booking.propertyId
+                );
                 return (
-                  <div key={booking.id} className="border border-gray-200 rounded-lg p-4">
+                  <div
+                    key={booking.id}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
                     <div className="flex items-start space-x-4">
                       <img
-                        src={property?.images[0] || ''}
+                        src={property?.images[0] || ""}
                         alt={property?.title}
                         className="w-20 h-20 rounded-lg object-cover"
                       />
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{property?.title}</h3>
-                        <p className="text-sm text-gray-600">{property?.address}</p>
+                        <h3 className="font-semibold text-gray-900">
+                          {property?.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {property?.address}
+                        </p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <span className="text-gray-500">
-                            {new Date(booking.checkIn).toLocaleDateString()} - {new Date(booking.checkOut).toLocaleDateString()}
+                            {new Date(booking.checkIn).toLocaleDateString()} -{" "}
+                            {new Date(booking.checkOut).toLocaleDateString()}
                           </span>
                           <span className="font-medium text-purple-600">
                             ${booking.totalAmount}
@@ -283,16 +299,25 @@ const CustomerDashboard: React.FC = () => {
         {filteredProperties.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No properties found matching your criteria</p>
+            <p className="text-gray-500">
+              No properties found matching your criteria
+            </p>
           </div>
         ) : (
           filteredProperties.map((property: Property) => {
             const rate = property.finalRate || property.proposedRate;
-            const nights = checkIn && checkOut ? calculateNights(checkIn, checkOut) : 1;
-            const isAvailable = !checkIn || !checkOut || isDateRangeAvailable(property.id, checkIn, checkOut);
-            
+            const nights =
+              checkIn && checkOut ? calculateNights(checkIn, checkOut) : 1;
+            const isAvailable =
+              !checkIn ||
+              !checkOut ||
+              isDateRangeAvailable(property.id, checkIn, checkOut);
+
             return (
-              <div key={property.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
+              <div
+                key={property.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
+              >
                 <div className="relative">
                   <img
                     src={property.images[0]}
@@ -309,14 +334,18 @@ const CustomerDashboard: React.FC = () => {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{property.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {property.title}
+                  </h3>
                   <p className="text-gray-600 text-sm mb-3 flex items-center">
                     <MapPin className="w-4 h-4 mr-1" />
                     {property.address}
                   </p>
-                  
+
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span>{property.bedrooms} bed • {property.bathrooms} bath</span>
+                    <span>
+                      {property.bedrooms} bed • {property.bathrooms} bath
+                    </span>
                     <span>Max {property.maxGuests} guests</span>
                   </div>
 
@@ -339,7 +368,9 @@ const CustomerDashboard: React.FC = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-2xl font-bold text-purple-600">${rate}</span>
+                      <span className="text-2xl font-bold text-purple-600">
+                        ${rate}
+                      </span>
                       <span className="text-gray-500 text-sm">/night</span>
                       {checkIn && checkOut && (
                         <div className="text-sm text-gray-600">
@@ -354,12 +385,12 @@ const CustomerDashboard: React.FC = () => {
                       }}
                       className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                         isAvailable
-                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          ? "bg-purple-600 hover:bg-purple-700 text-white"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                       disabled={!isAvailable}
                     >
-                      {isAvailable ? 'Book Now' : 'Unavailable'}
+                      {isAvailable ? "Book Now" : "Unavailable"}
                     </button>
                   </div>
                 </div>
@@ -374,6 +405,16 @@ const CustomerDashboard: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
+              {/* X Button - Right Aligned */}
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={() => setSelectedProperty(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
               {/* Image Gallery */}
               <div className="relative mb-6">
                 <div className="relative h-96 rounded-lg overflow-hidden">
@@ -402,7 +443,9 @@ const CustomerDashboard: React.FC = () => {
                             key={index}
                             onClick={() => setCurrentImageIndex(index)}
                             className={`w-2 h-2 rounded-full transition-colors ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                              index === currentImageIndex
+                                ? "bg-white"
+                                : "bg-white bg-opacity-50"
                             }`}
                           />
                         ))}
@@ -415,7 +458,9 @@ const CustomerDashboard: React.FC = () => {
               {/* Property Details */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedProperty.title}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    {selectedProperty.title}
+                  </h2>
                   <p className="text-gray-600 mb-4 flex items-center">
                     <MapPin className="w-5 h-5 mr-2" />
                     {selectedProperty.address}
@@ -423,26 +468,38 @@ const CustomerDashboard: React.FC = () => {
 
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{selectedProperty.bedrooms}</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {selectedProperty.bedrooms}
+                      </div>
                       <div className="text-sm text-gray-600">Bedrooms</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{selectedProperty.bathrooms}</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {selectedProperty.bathrooms}
+                      </div>
                       <div className="text-sm text-gray-600">Bathrooms</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{selectedProperty.maxGuests}</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {selectedProperty.maxGuests}
+                      </div>
                       <div className="text-sm text-gray-600">Max Guests</div>
                     </div>
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-                    <p className="text-gray-600">{selectedProperty.description}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Description
+                    </h3>
+                    <p className="text-gray-600">
+                      {selectedProperty.description}
+                    </p>
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Amenities</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Amenities
+                    </h3>
                     <div className="grid grid-cols-2 gap-2">
                       {selectedProperty.amenities.map((amenity, index) => (
                         <div
@@ -457,13 +514,20 @@ const CustomerDashboard: React.FC = () => {
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Host</h3>
-                    <p className="text-gray-600">{getOwnerName(selectedProperty.ownerId)}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Host
+                    </h3>
+                    <p className="text-gray-600">
+                      {getOwnerName(selectedProperty.ownerId)}
+                    </p>
                   </div>
 
                   {/* Reviews Section */}
                   <div className="mb-6">
-                    <ReviewSystem propertyId={selectedProperty.id} showAddReview={true} />
+                    <ReviewSystem
+                      propertyId={selectedProperty.id}
+                      showAddReview={true}
+                    />
                   </div>
                 </div>
 
@@ -472,7 +536,9 @@ const CustomerDashboard: React.FC = () => {
                   <div className="mb-6">
                     <div className="flex items-baseline space-x-2">
                       <span className="text-3xl font-bold text-purple-600">
-                        ${selectedProperty.finalRate || selectedProperty.proposedRate}
+                        $
+                        {selectedProperty.finalRate ||
+                          selectedProperty.proposedRate}
                       </span>
                       <span className="text-gray-600">/ night</span>
                     </div>
@@ -488,7 +554,7 @@ const CustomerDashboard: React.FC = () => {
                           type="date"
                           value={checkIn}
                           onChange={(e) => setCheckIn(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
+                          min={new Date().toISOString().split("T")[0]}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -500,7 +566,9 @@ const CustomerDashboard: React.FC = () => {
                           type="date"
                           value={checkOut}
                           onChange={(e) => setCheckOut(e.target.value)}
-                          min={checkIn || new Date().toISOString().split('T')[0]}
+                          min={
+                            checkIn || new Date().toISOString().split("T")[0]
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -515,8 +583,13 @@ const CustomerDashboard: React.FC = () => {
                         onChange={(e) => setGuests(Number(e.target.value))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       >
-                        {Array.from({ length: selectedProperty.maxGuests }, (_, i) => i + 1).map(num => (
-                          <option key={num} value={num}>{num} Guest{num > 1 ? 's' : ''}</option>
+                        {Array.from(
+                          { length: selectedProperty.maxGuests },
+                          (_, i) => i + 1
+                        ).map((num) => (
+                          <option key={num} value={num}>
+                            {num} Guest{num > 1 ? "s" : ""}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -526,15 +599,26 @@ const CustomerDashboard: React.FC = () => {
                     <div className="border-t pt-4 mb-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-600">
-                          ${selectedProperty.finalRate || selectedProperty.proposedRate} × {calculateNights(checkIn, checkOut)} nights
+                          $
+                          {selectedProperty.finalRate ||
+                            selectedProperty.proposedRate}{" "}
+                          × {calculateNights(checkIn, checkOut)} nights
                         </span>
                         <span className="text-gray-900">
-                          ${(selectedProperty.finalRate || selectedProperty.proposedRate) * calculateNights(checkIn, checkOut)}
+                          $
+                          {(selectedProperty.finalRate ||
+                            selectedProperty.proposedRate) *
+                            calculateNights(checkIn, checkOut)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
                         <span>Total</span>
-                        <span>${(selectedProperty.finalRate || selectedProperty.proposedRate) * calculateNights(checkIn, checkOut)}</span>
+                        <span>
+                          $
+                          {(selectedProperty.finalRate ||
+                            selectedProperty.proposedRate) *
+                            calculateNights(checkIn, checkOut)}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -542,15 +626,26 @@ const CustomerDashboard: React.FC = () => {
                   <div className="space-y-3">
                     <button
                       onClick={() => handleBookProperty(selectedProperty)}
-                      disabled={!checkIn || !checkOut || !isDateRangeAvailable(selectedProperty.id, checkIn, checkOut)}
+                      disabled={
+                        !checkIn ||
+                        !checkOut ||
+                        !isDateRangeAvailable(
+                          selectedProperty.id,
+                          checkIn,
+                          checkOut
+                        )
+                      }
                       className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
                     >
                       {checkIn && checkOut
-                        ? isDateRangeAvailable(selectedProperty.id, checkIn, checkOut)
-                          ? 'Confirm Booking'
-                          : 'Not Available for Selected Dates'
-                        : 'Select Dates to Book'
-                      }
+                        ? isDateRangeAvailable(
+                            selectedProperty.id,
+                            checkIn,
+                            checkOut
+                          )
+                          ? "Confirm Booking"
+                          : "Not Available for Selected Dates"
+                        : "Select Dates to Book"}
                     </button>
                     <button
                       onClick={() => setSelectedProperty(null)}

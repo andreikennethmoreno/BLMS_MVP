@@ -21,9 +21,19 @@ const LoginForm: React.FC = () => {
   };
 
   const demoAccounts = [
-    { role: 'Property Manager', email: 'manager@hotelplatform.com', password: 'manager123' },
-    { role: 'Unit Owner', email: 'owner1@example.com', password: 'owner123' },
-    { role: 'Customer', email: 'customer@example.com', password: 'customer123' }
+    {
+      role: "Property Manager",
+      email: "manager@hotelplatform.com",
+      password: "manager123",
+    },
+    { role: "Unit Owner 1", email: "owner1@example.com", password: "owner123" },
+    { role: "Unit Owner 2", email: "owner2@example.com", password: "owner123" },
+
+    {
+      role: "Customer",
+      email: "customer@example.com",
+      password: "customer123",
+    },
   ];
 
   const fillDemo = (email: string, password: string) => {

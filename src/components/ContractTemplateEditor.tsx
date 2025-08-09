@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { FileText, Plus, Edit, Trash2, Save, X } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import formTemplatesData from '../data/formTemplates.json';
+import React, { useState } from "react";
+import { FileText, Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import formTemplatesData from "../data/formTemplates.json";
 
 interface ContractField {
   id: string;
@@ -23,37 +23,76 @@ interface ContractTemplate {
   createdBy: string;
 }
 
+// Type for the base template from JSON (without commissionPercentage)
+interface BaseTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  fields: ContractField[];
+  createdAt: string;
+  createdBy: string;
+  commissionPercentage?: number; // Optional in JSON data
+}
+
 interface ContractTemplateEditorProps {
   onSelectTemplate?: (template: ContractTemplate) => void;
   showSelector?: boolean;
 }
 
-const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({ 
-  onSelectTemplate, 
-  showSelector = false 
+const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
+  onSelectTemplate,
+  showSelector = false,
 }) => {
   const { user } = useAuth();
-  const [templates, setTemplates] = useLocalStorage('contractTemplates', formTemplatesData.formTemplates);
-  const [editingTemplate, setEditingTemplate] = useState<ContractTemplate | null>(null);
+  const [templates, setTemplates] = useLocalStorage(
+    "contractTemplates",
+    formTemplatesData.formTemplates
+  );
+  const [editingTemplate, setEditingTemplate] =
+    useState<ContractTemplate | null>(null);
   const [showNewTemplateForm, setShowNewTemplateForm] = useState(false);
   const [newTemplate, setNewTemplate] = useState({
-    name: '',
-    description: '',
+    name: "Sample Contract Template",
+    description: "Description of the sample contract template",
     commissionPercentage: 15,
     fields: [
-      { id: 'property_name', label: 'Property Name', type: 'text', required: true },
-      { id: 'owner_name', label: 'Owner Name', type: 'text', required: true },
-      { id: 'rental_rate', label: 'Rental Rate (per night)', type: 'number', required: true },
-      { id: 'terms', label: 'Additional Terms', type: 'textarea', required: false }
-    ]
+      {
+        id: "property_name",
+        label: "Property Name",
+        type: "text",
+        required: true,
+      },
+      { id: "owner_name", label: "Owner Name", type: "text", required: true },
+      {
+        id: "rental_rate",
+        label: "Rental Rate (per night)",
+        type: "number",
+        required: true,
+      },
+      {
+        id: "terms",
+        label: "Additional Terms",
+        type: "textarea",
+        required: false,
+      },
+    ],
   });
 
-  const contractTemplates = templates.filter((t: any) => t.category === 'contracts');
+  // Convert base templates to ContractTemplate format with default commission percentage
+  const contractTemplates = templates
+    .filter((t: BaseTemplate) => t.category === "contracts")
+    .map(
+      (t: BaseTemplate): ContractTemplate => ({
+        ...t,
+        commissionPercentage: t.commissionPercentage ?? 15, // Default to 15% if not specified
+      })
+    );
 
   const handleSaveTemplate = (template: ContractTemplate) => {
     if (editingTemplate) {
       // Update existing template
-      const updatedTemplates = templates.map((t: any) =>
+      const updatedTemplates = templates.map((t: BaseTemplate) =>
         t.id === template.id ? template : t
       );
       setTemplates(updatedTemplates);
@@ -62,9 +101,9 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
       const newTemplateWithId = {
         ...template,
         id: `template-${Date.now()}`,
-        category: 'contracts',
+        category: "contracts",
         createdAt: new Date().toISOString(),
-        createdBy: user?.id || ''
+        createdBy: user?.id || "",
       };
       setTemplates([...templates, newTemplateWithId]);
     }
@@ -73,45 +112,58 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
   };
 
   const handleDeleteTemplate = (templateId: string) => {
-    setTemplates(templates.filter((t: any) => t.id !== templateId));
+    setTemplates(templates.filter((t: BaseTemplate) => t.id !== templateId));
   };
 
   const addField = (template: ContractTemplate) => {
     const newField = {
       id: `field-${Date.now()}`,
-      label: '',
-      type: 'text',
-      required: false
+      label: "",
+      type: "text",
+      required: false,
     };
     return {
       ...template,
-      fields: [...template.fields, newField]
+      fields: [...template.fields, newField],
     };
   };
 
-  const updateField = (template: ContractTemplate, fieldIndex: number, field: Partial<ContractField>) => {
+  const updateField = (
+    template: ContractTemplate,
+    fieldIndex: number,
+    field: Partial<ContractField>
+  ) => {
     return {
       ...template,
-      fields: template.fields.map((f, i) => i === fieldIndex ? { ...f, ...field } : f)
+      fields: template.fields.map((f, i) =>
+        i === fieldIndex ? { ...f, ...field } : f
+      ),
     };
   };
 
   const removeField = (template: ContractTemplate, fieldIndex: number) => {
     return {
       ...template,
-      fields: template.fields.filter((_, i) => i !== fieldIndex)
+      fields: template.fields.filter((_, i) => i !== fieldIndex),
     };
   };
 
   if (showSelector) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Select Contract Template</h3>
+        <h3 className="text-lg font-semibold text-gray-900">
+          Select Contract Template
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {contractTemplates.map((template: ContractTemplate) => (
-            <div key={template.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          {contractTemplates.map((template) => (
+            <div
+              key={template.id}
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
               <h4 className="font-medium text-gray-900">{template.name}</h4>
-              <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                {template.description}
+              </p>
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-sm text-blue-600 font-medium">
                   {template.commissionPercentage}% Commission
@@ -146,18 +198,23 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
 
       {/* Templates List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {contractTemplates.map((template: ContractTemplate) => (
-          <div key={template.id} className="bg-white border border-gray-200 rounded-lg p-6">
+        {contractTemplates.map((template) => (
+          <div
+            key={template.id}
+            className="bg-white border border-gray-200 rounded-lg p-6"
+          >
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {template.description}
+                </p>
                 <p className="text-sm text-blue-600 font-medium mt-2">
                   Commission: {template.commissionPercentage}%
                 </p>
               </div>
             </div>
-            
+
             <div className="flex space-x-2">
               <button
                 onClick={() => setEditingTemplate(template)}
@@ -184,7 +241,9 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-semibold text-gray-900">
-                  {editingTemplate ? 'Edit Contract Template' : 'Create Contract Template'}
+                  {editingTemplate
+                    ? "Edit Contract Template"
+                    : "Create Contract Template"}
                 </h3>
                 <button
                   onClick={() => {
@@ -221,8 +280,15 @@ interface TemplateFormProps {
   onSave: (template: ContractTemplate) => void;
   onCancel: () => void;
   addField: (template: ContractTemplate) => ContractTemplate;
-  updateField: (template: ContractTemplate, fieldIndex: number, field: Partial<ContractField>) => ContractTemplate;
-  removeField: (template: ContractTemplate, fieldIndex: number) => ContractTemplate;
+  updateField: (
+    template: ContractTemplate,
+    fieldIndex: number,
+    field: Partial<ContractField>
+  ) => ContractTemplate;
+  removeField: (
+    template: ContractTemplate,
+    fieldIndex: number
+  ) => ContractTemplate;
 }
 
 const TemplateForm: React.FC<TemplateFormProps> = ({
@@ -231,7 +297,7 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
   onCancel,
   addField,
   updateField,
-  removeField
+  removeField,
 }) => {
   const [currentTemplate, setCurrentTemplate] = useState(template);
 
@@ -250,7 +316,9 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
           <input
             type="text"
             value={currentTemplate.name}
-            onChange={(e) => setCurrentTemplate(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setCurrentTemplate((prev) => ({ ...prev, name: e.target.value }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
@@ -266,7 +334,12 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
               min="0"
               max="100"
               value={currentTemplate.commissionPercentage}
-              onChange={(e) => setCurrentTemplate(prev => ({ ...prev, commissionPercentage: Number(e.target.value) }))}
+              onChange={(e) =>
+                setCurrentTemplate((prev) => ({
+                  ...prev,
+                  commissionPercentage: Number(e.target.value),
+                }))
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
@@ -281,7 +354,12 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
         </label>
         <textarea
           value={currentTemplate.description}
-          onChange={(e) => setCurrentTemplate(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) =>
+            setCurrentTemplate((prev) => ({
+              ...prev,
+              description: e.target.value,
+            }))
+          }
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           rows={2}
           required
@@ -305,7 +383,10 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
 
         <div className="space-y-4">
           {currentTemplate.fields.map((field: ContractField, index: number) => (
-            <div key={field.id} className="border border-gray-200 rounded-lg p-4">
+            <div
+              key={field.id}
+              className="border border-gray-200 rounded-lg p-4"
+            >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -314,7 +395,13 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
                   <input
                     type="text"
                     value={field.label}
-                    onChange={(e) => setCurrentTemplate(updateField(currentTemplate, index, { label: e.target.value }))}
+                    onChange={(e) =>
+                      setCurrentTemplate(
+                        updateField(currentTemplate, index, {
+                          label: e.target.value,
+                        })
+                      )
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter field label"
                   />
@@ -326,7 +413,13 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
                   </label>
                   <select
                     value={field.type}
-                    onChange={(e) => setCurrentTemplate(updateField(currentTemplate, index, { type: e.target.value }))}
+                    onChange={(e) =>
+                      setCurrentTemplate(
+                        updateField(currentTemplate, index, {
+                          type: e.target.value,
+                        })
+                      )
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="text">Text</option>
@@ -343,7 +436,13 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
                     <input
                       type="checkbox"
                       checked={field.required}
-                      onChange={(e) => setCurrentTemplate(updateField(currentTemplate, index, { required: e.target.checked }))}
+                      onChange={(e) =>
+                        setCurrentTemplate(
+                          updateField(currentTemplate, index, {
+                            required: e.target.checked,
+                          })
+                        )
+                      }
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm text-gray-700">Required</span>
@@ -353,7 +452,9 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
                 <div className="flex items-center">
                   <button
                     type="button"
-                    onClick={() => setCurrentTemplate(removeField(currentTemplate, index))}
+                    onClick={() =>
+                      setCurrentTemplate(removeField(currentTemplate, index))
+                    }
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
                     disabled={currentTemplate.fields.length === 1}
                   >
