@@ -36,8 +36,13 @@ const LoginForm: React.FC = () => {
     { role: "Unit Owner 2", email: "owner2@example.com", password: "owner123" },
 
     {
-      role: "Customer",
+      role: "Customer 1",
       email: "customer@example.com",
+      password: "customer123",
+    },
+    {
+      role: "Customer 2",
+      email: "alice@example.com",
       password: "customer123",
     },
   ];
