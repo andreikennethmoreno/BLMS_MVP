@@ -472,8 +472,6 @@ const UnitOwnerDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
-
     </div>
   );
 };
