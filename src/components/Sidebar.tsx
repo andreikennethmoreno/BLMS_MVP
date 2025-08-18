@@ -12,6 +12,9 @@ import {
   ChevronRight,
   LogOut,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "../contexts/AuthContext";
 
 interface SidebarProps {
@@ -61,18 +64,18 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [user?.role]);
 
-  const roleColor = useMemo(() => {
+  const getRoleVariant = () => {
     switch (user?.role) {
       case "property_manager":
-        return "bg-blue-600";
+        return "default";
       case "unit_owner":
-        return "bg-emerald-600";
+        return "secondary";
       case "customer":
-        return "bg-purple-600";
+        return "outline";
       default:
-        return "bg-gray-600";
+        return "outline";
     }
-  }, [user?.role]);
+  };
 
   const handleLogout = async () => {
     try {
@@ -84,29 +87,30 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div
-      className={`bg-white shadow-lg border-r border-gray-200 transition-all duration-300 ${
+      className={`bg-background shadow-lg border-r transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       } flex flex-col h-full`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <div className="text-xl font-bold text-gray-900">HotelPlatform</div>
+            <div className="text-xl font-bold">HotelPlatform</div>
           )}
-          <button
+          <Button
             onClick={onToggleCollapse}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            variant="ghost"
+            size="sm"
+            className="p-2"
           >
             {isCollapsed ? (
-              <ChevronRight className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-5 h-5" />
             ) : (
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+              <ChevronLeft className="w-5 h-5" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
-
 
       {/* Navigation Items */}
       <nav className="flex-1 p-4">
@@ -116,73 +120,76 @@ const Sidebar: React.FC<SidebarProps> = ({
             const isActive = currentView === item.id;
 
             return (
-              <button
+              <Button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? `${roleColor} text-white`
-                    : "text-gray-600 hover:bg-gray-100"
-                } ${isCollapsed ? "justify-center" : ""}`}
+                variant={isActive ? getRoleVariant() : "ghost"}
+                className={`w-full justify-start ${
+                  isCollapsed ? "px-2" : "px-3"
+                }`}
                 title={isCollapsed ? item.label : undefined}
                 disabled={isLoading}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 {!isCollapsed && (
-                  <span className="font-medium">{item.label}</span>
+                  <span className="ml-3 font-medium">{item.label}</span>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
       </nav>
 
+      <Separator />
+
       {/* Auth & User Info Section */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4">
         {user ? (
           <>
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              disabled={isLoading}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors 
-                text-gray-600 hover:bg-gray-100 disabled:opacity-50 ${
-                  isCollapsed ? "justify-center" : ""
-                }`}
-            >
-              <LogOut className="w-5 h-5" />
-              {!isCollapsed && <span className="font-medium">{isLoading ? 'Logging out...' : 'Logout'}</span>}
-            </button>
-
             {/* User Info */}
             {!isCollapsed && (
-              <div className="mt-4 flex items-center space-x-3">
-                <div
-                  className={`w-10 h-10 ${roleColor} rounded-full flex items-center justify-center`}
-                >
-                  <span className="text-white font-semibold text-sm">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-primary-foreground font-semibold text-sm">
                     {user?.name?.charAt(0)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 truncate">
+                  <div className="font-medium truncate">
                     {user?.name}
                   </div>
-                  <div className="text-sm text-gray-500 capitalize truncate">
+                  <Badge variant="secondary" className="text-xs">
                     {user?.role?.replace("_", " ")}
-                  </div>
+                  </Badge>
                 </div>
               </div>
             )}
+
+            {/* Logout Button */}
+            <Button
+              onClick={handleLogout}
+              disabled={isLoading}
+              variant="ghost"
+              className={`w-full justify-start ${
+                isCollapsed ? "px-2" : "px-3"
+              }`}
+              title={isCollapsed ? "Logout" : undefined}
+            >
+              <LogOut className="w-5 h-5" />
+              {!isCollapsed && (
+                <span className="ml-3 font-medium">
+                  {isLoading ? 'Logging out...' : 'Logout'}
+                </span>
+              )}
+            </Button>
           </>
         ) : (
           /* Login Button */
-          <button
+          <Button
             onClick={() => onViewChange("login")}
-            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
-              bg-blue-600 text-white hover:bg-blue-700 ${
-                isCollapsed ? "justify-center" : ""
-              }`}
+            className={`w-full justify-start ${
+              isCollapsed ? "px-2" : "px-3"
+            }`}
           >
             {isCollapsed ? (
               <span role="img" aria-label="login">
@@ -191,7 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             ) : (
               <span className="font-medium">Login</span>
             )}
-          </button>
+          </Button>
         )}
       </div>
     </div>

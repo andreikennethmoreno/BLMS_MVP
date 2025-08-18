@@ -1,5 +1,7 @@
 import React from 'react';
 import { LogOut, Home, Building, Users, Settings, AlertTriangle, Wrench, FileText, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavigationProps {
@@ -44,25 +46,25 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
 
   const navigationItems = getNavigationItems();
 
-  const getRoleColor = () => {
+  const getRoleVariant = () => {
     switch (user?.role) {
       case 'property_manager':
-        return 'bg-blue-600';
+        return 'default';
       case 'unit_owner':
-        return 'bg-emerald-600';
+        return 'secondary';
       case 'customer':
-        return 'bg-purple-600';
+        return 'outline';
       default:
-        return 'bg-gray-600';
+        return 'outline';
     }
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="bg-background shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold">
               HotelPlatform
             </div>
             
@@ -70,18 +72,15 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <button
+                  <Button
                     key={item.id}
                     onClick={() => onViewChange(item.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                      currentView === item.id
-                        ? `${getRoleColor()} text-white`
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    variant={currentView === item.id ? getRoleVariant() : "ghost"}
+                    className="flex items-center space-x-2"
                   >
                     <Icon className="w-4 h-4" />
                     <span>{item.label}</span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -89,16 +88,20 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
 
           <div className="flex items-center space-x-4">
             <div className="text-sm">
-              <div className="font-medium text-gray-900">{user?.name}</div>
-              <div className="text-gray-500 capitalize">{user?.role?.replace('_', ' ')}</div>
+              <div className="font-medium">{user?.name}</div>
+              <Badge variant="secondary" className="text-xs">
+                {user?.role?.replace('_', ' ')}
+              </Badge>
             </div>
-            <button
+            <Button
               onClick={logout}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              variant="ghost"
+              size="sm"
+              className="flex items-center space-x-2"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Logout</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
