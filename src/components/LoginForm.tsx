@@ -1,28 +1,48 @@
 import React, { useState } from 'react';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Building } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useAuth } from '../contexts/AuthContext';
-import RegistrationForm from './RegistrationForm';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+interface LoginFormProps {
+  onSwitchToRegister: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [showRegistration, setShowRegistration] = useState(false);
+  const [loginError, setLoginError] = useState('');
   const { login } = useAuth();
 
-  if (showRegistration) {
-    return <RegistrationForm onSwitchToLogin={() => setShowRegistration(false)} />;
-  }
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const onSubmit = (data: LoginFormData) => {
+    setLoginError('');
+    console.log('Login form data:', JSON.stringify(data, null, 2));
 
-    if (login(email, password)) {
+    if (login(data.email, data.password)) {
       // Navigation will be handled by App component
     } else {
-      setError('Invalid email or password');
+      setLoginError('Invalid email or password');
     }
   };
 
@@ -48,103 +68,119 @@ const LoginForm: React.FC = () => {
   ];
 
   const fillDemo = (email: string, password: string) => {
-    setEmail(email);
-    setPassword(password);
-    setError('');
+    form.setValue('email', email);
+    form.setValue('password', password);
+    setLoginError('');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-              <LogIn className="w-8 h-8 text-white" />
+      <div className="w-full max-w-md space-y-8">
+        <Card className="shadow-xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+              <LogIn className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-600 mt-2">Sign in to your account</p>
-          </div>
+            <CardTitle className="text-3xl">Welcome Back</CardTitle>
+            <CardDescription>Sign in to your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {loginError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{loginError}</AlertDescription>
+                  </Alert>
+                )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-600 text-sm">{error}</p>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors pr-12"
-                  required
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Enter your email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Enter your password"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full" size="lg">
+                  Sign In
+                </Button>
+              </form>
+            </Form>
+
+            <div className="mt-6 text-center">
+              <p className="text-muted-foreground">
+                Don't have an account?{' '}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto font-medium"
+                  onClick={onSwitchToRegister}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+                  Sign up here
+                </Button>
+              </p>
+            </div>
+
+            <div className="mt-8">
+              <div className="text-sm text-muted-foreground text-center mb-4">
+                Demo Accounts (Click to fill)
+              </div>
+              <div className="space-y-2">
+                {demoAccounts.map((account) => (
+                  <Button
+                    key={account.role}
+                    variant="outline"
+                    className="w-full justify-start text-left h-auto p-3"
+                    onClick={() => fillDemo(account.email, account.password)}
+                  >
+                    <div>
+                      <div className="font-medium">{account.role}</div>
+                      <div className="text-sm text-muted-foreground">{account.email}</div>
+                    </div>
+                  </Button>
+                ))}
               </div>
             </div>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
-            >
-              Sign In
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Don't have an account?{' '}
-              <button
-                onClick={() => setShowRegistration(true)}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Sign up here
-              </button>
-            </p>
-          </div>
-
-          <div className="mt-8">
-            <div className="text-sm text-gray-500 text-center mb-4">
-              Demo Accounts (Click to fill)
-            </div>
-            <div className="space-y-2">
-              {demoAccounts.map((account) => (
-                <button
-                  key={account.role}
-                  onClick={() => fillDemo(account.email, account.password)}
-                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="font-medium text-gray-900">{account.role}</div>
-                  <div className="text-sm text-gray-600">{account.email}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

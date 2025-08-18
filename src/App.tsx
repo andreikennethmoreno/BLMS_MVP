@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LandingPage from './components/LandingPage';
 import LoginForm from './components/LoginForm';
+import RegistrationForm from './components/RegistrationForm';
 import Sidebar from './components/Sidebar';
 import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
@@ -21,9 +23,19 @@ const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [authView, setAuthView] = useState<'landing' | 'login' | 'register'>('landing');
 
   if (!isAuthenticated) {
-    return <LoginForm />;
+    switch (authView) {
+      case 'landing':
+        return <LandingPage onGetStarted={() => setAuthView('login')} />;
+      case 'login':
+        return <LoginForm onSwitchToRegister={() => setAuthView('register')} />;
+      case 'register':
+        return <RegistrationForm onSwitchToLogin={() => setAuthView('login')} />;
+      default:
+        return <LandingPage onGetStarted={() => setAuthView('login')} />;
+    }
   }
 
   const renderContent = () => {
