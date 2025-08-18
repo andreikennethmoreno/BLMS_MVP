@@ -25,7 +25,7 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -35,14 +35,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     setLoginError('');
     console.log('Login form data:', JSON.stringify(data, null, 2));
 
-    if (login(data.email, data.password)) {
-      // Navigation will be handled by App component
-    } else {
-      setLoginError('Invalid email or password');
+    try {
+      const success = await login(data.email, data.password);
+      if (!success) {
+        setLoginError('Invalid email or password');
+      }
+    } catch (error) {
+      setLoginError('An error occurred during login');
     }
   };
 
@@ -141,7 +144,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                 />
 
                 <Button type="submit" className="w-full" size="lg">
-                  Sign In
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
             </Form>

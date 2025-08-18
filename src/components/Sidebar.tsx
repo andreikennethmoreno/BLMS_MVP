@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Home,
   Building,
@@ -27,9 +27,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
 
-  const getNavigationItems = () => {
+  const navigationItems = useMemo(() => {
     switch (user?.role) {
       case "property_manager":
         return [
@@ -59,9 +59,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       default:
         return [];
     }
-  };
+  }, [user?.role]);
 
-  const getRoleColor = () => {
+  const roleColor = useMemo(() => {
     switch (user?.role) {
       case "property_manager":
         return "bg-blue-600";
@@ -72,9 +72,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       default:
         return "bg-gray-600";
     }
-  };
+  }, [user?.role]);
 
-  const navigationItems = getNavigationItems();
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <div
@@ -115,10 +121,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onViewChange(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   isActive
-                    ? `${getRoleColor()} text-white`
+                    ? `${roleColor} text-white`
                     : "text-gray-600 hover:bg-gray-100"
                 } ${isCollapsed ? "justify-center" : ""}`}
                 title={isCollapsed ? item.label : undefined}
+                disabled={isLoading}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 {!isCollapsed && (
@@ -136,21 +143,22 @@ const Sidebar: React.FC<SidebarProps> = ({
           <>
             {/* Logout Button */}
             <button
-              onClick={logout}
+              onClick={handleLogout}
+              disabled={isLoading}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors 
-                text-gray-600 hover:bg-gray-100 ${
+                text-gray-600 hover:bg-gray-100 disabled:opacity-50 ${
                   isCollapsed ? "justify-center" : ""
                 }`}
             >
               <LogOut className="w-5 h-5" />
-              {!isCollapsed && <span className="font-medium">Logout</span>}
+              {!isCollapsed && <span className="font-medium">{isLoading ? 'Logging out...' : 'Logout'}</span>}
             </button>
 
             {/* User Info */}
             {!isCollapsed && (
               <div className="mt-4 flex items-center space-x-3">
                 <div
-                  className={`w-10 h-10 ${getRoleColor()} rounded-full flex items-center justify-center`}
+                  className={`w-10 h-10 ${roleColor} rounded-full flex items-center justify-center`}
                 >
                   <span className="text-white font-semibold text-sm">
                     {user?.name?.charAt(0)}

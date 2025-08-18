@@ -31,7 +31,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSwitchToLogin }) 
   const [users, setUsers] = useLocalStorage('users', usersData.users);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
@@ -43,7 +43,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSwitchToLogin }) 
     },
   });
 
-  const onSubmit = (data: RegistrationFormData, isMerchant = false) => {
+  const onSubmit = useCallback(async (data: RegistrationFormData, isMerchant = false) => {
     console.log('Registration form data:', JSON.stringify({ ...data, isMerchant }, null, 2));
 
     // Check if email already exists
@@ -52,10 +52,12 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSwitchToLogin }) 
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     // Simulate API call delay
-    setTimeout(() => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    try {
       const newUser = {
         id: `user-${Date.now()}`,
         email: data.email,
@@ -67,12 +69,16 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSwitchToLogin }) 
       };
 
       setUsers([...users, newUser]);
-      setIsLoading(false);
       
       alert(`Registration successful! ${isMerchant ? 'Your merchant account will be reviewed by our team.' : 'You can now log in.'}`);
       onSwitchToLogin();
-    }, 1000);
-  };
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert('An error occurred during registration. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [users, setUsers, onSwitchToLogin, form]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
@@ -187,23 +193,23 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSwitchToLogin }) 
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   className="w-full"
                   size="lg"
                 >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
                 </Button>
 
                 <Button
                   type="button"
                   onClick={() => form.handleSubmit((data) => onSubmit(data, true))()}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   variant="secondary"
                   className="w-full"
                   size="lg"
                 >
                   <Building className="w-5 h-5 mr-2" />
-                  {isLoading ? 'Creating Merchant Account...' : 'Register as Merchant'}
+                  {isSubmitting ? 'Creating Merchant Account...' : 'Register as Merchant'}
                 </Button>
               </form>
             </Form>

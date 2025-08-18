@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Toaster } from './components/ui/toaster';
+import { Skeleton } from './components/ui/skeleton';
 import LandingPage from './components/LandingPage';
 import LoginForm from './components/LoginForm';
 import RegistrationForm from './components/RegistrationForm';
@@ -20,11 +22,21 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Navigation from './components/Navigation';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authView, setAuthView] = useState<'landing' | 'login' | 'register'>('landing');
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-48" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+    );
+  }
   if (!isAuthenticated) {
     switch (authView) {
       case 'landing':
@@ -97,6 +109,11 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      <Suspense fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Skeleton className="h-32 w-64" />
+        </div>
+      }>
       {user?.role === "customer" ? (
         // Customer Navigation
         <Navigation currentView={currentView} onViewChange={setCurrentView} />
@@ -117,6 +134,8 @@ const AppContent: React.FC = () => {
       {user?.role === "customer" && (
         <div className="flex-1 overflow-hidden">{renderContent()}</div>
       )}
+      </Suspense>
+      <Toaster />
     </>
   );
 };

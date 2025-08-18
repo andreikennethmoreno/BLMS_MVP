@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import usersData from '../data/users.json';
 
 export type UserRole = 'property_manager' | 'unit_owner' | 'customer';
@@ -14,9 +14,10 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,15 +32,28 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     const savedUser = localStorage.getItem('hotelUser');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('hotelUser');
+      }
     }
+    setIsLoading(false);
   }, []);
 
-  const login = (email: string, password: string): boolean => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     const foundUser = usersData.users.find(u => 
       u.email === email && u.password === password
     );
@@ -56,23 +70,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(userWithoutPassword);
       localStorage.setItem('hotelUser', JSON.stringify(userWithoutPassword));
+      setIsLoading(false);
       return true;
     }
+    setIsLoading(false);
     return false;
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     setUser(null);
     localStorage.removeItem('hotelUser');
-  };
+    setIsLoading(false);
+  }, []);
 
+  const contextValue = useMemo(() => ({
+    user,
+    login,
+    logout,
+    isAuthenticated: !!user,
+    isLoading
+  }), [user, login, logout, isLoading]);
   return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      logout,
-      isAuthenticated: !!user
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
