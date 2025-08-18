@@ -2,26 +2,14 @@ import React, { useState } from 'react';
 import { UserPlus, Eye, EyeOff, Building } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { registrationSchema, type RegistrationFormData } from '@/lib/validations';
 import usersData from '../data/users.json';
-
-const registrationSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 interface RegistrationFormProps {
   onSwitchToLogin: () => void;
@@ -44,7 +32,6 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onSwitchToLogin }) 
   });
 
   const onSubmit = useCallback(async (data: RegistrationFormData, isMerchant = false) => {
-    console.log('Registration form data:', JSON.stringify({ ...data, isMerchant }, null, 2));
 
     // Check if email already exists
     if (users.some(user => user.email === data.email)) {

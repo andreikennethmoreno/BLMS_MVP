@@ -6,12 +6,25 @@ A comprehensive hotel booking platform built with React, TypeScript, and Tailwin
 
 ## Architecture & Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Styling**: Tailwind CSS with custom animations
-- **State Management**: React Context API with localStorage persistence
-- **Icons**: Lucide React
-- **Build Tool**: Vite
-- **Data Storage**: JSON files with localStorage caching
+### Frontend Technologies
+- **React 18** with TypeScript for type safety
+- **Tailwind CSS** with custom animations and responsive design
+- **React Hook Form** with Zod validation for robust form handling
+- **Radix UI** components for accessible UI primitives
+- **Lucide React** for consistent iconography
+- **Vite** for fast development and optimized builds
+
+### State Management & Data
+- **React Context API** with localStorage persistence
+- **Custom hooks** for data management and form handling
+- **JSON-based data storage** with localStorage caching
+- **Real-time data synchronization** across components
+
+### Form Handling & Validation
+- **React Hook Form** for performant form management
+- **Zod schemas** for runtime type validation
+- **Custom validation rules** for business logic
+- **Error handling** with user-friendly messages
 
 ## User Roles & Access Control
 
@@ -117,15 +130,29 @@ A comprehensive hotel booking platform built with React, TypeScript, and Tailwin
 - **Performance Dashboards**: Role-specific analytics views
 - **Trend Analysis**: Month-over-month performance comparisons
 
-### 7. User Registration & Authentication
+### 7. Form Management & Validation
+- **React Hook Form Integration**: Performant form handling with minimal re-renders
+- **Zod Schema Validation**: Runtime type checking and validation
+- **Custom Validation Rules**: Business-specific validation logic
+- **Error Handling**: User-friendly error messages and field highlighting
+- **Form State Management**: Automatic form state persistence and reset
+
+### 8. User Registration & Authentication
 - **Multi-role Registration**: Customer and Merchant registration options
 - **Email Validation**: Duplicate email prevention
-- **Password Security**: Minimum security requirements
+- **Password Security**: Minimum security requirements with validation
 - **Account Verification**: Merchant accounts require admin approval
 - **Session Management**: Persistent login with localStorage
 - **Role-based Routing**: Automatic redirection based on user role
 
 ## Technical Implementation Details
+
+### Form Architecture
+- **Centralized Validation**: All form schemas defined in `/src/lib/validations.ts`
+- **Type Safety**: TypeScript types generated from Zod schemas
+- **Reusable Components**: Form components built with Radix UI primitives
+- **Performance Optimization**: React Hook Form reduces unnecessary re-renders
+- **Error Boundaries**: Comprehensive error handling and user feedback
 
 ### State Management
 - **Context API**: Centralized authentication and user state
@@ -148,27 +175,69 @@ A comprehensive hotel booking platform built with React, TypeScript, and Tailwin
 ### Security Features
 - **Role-based Access**: Strict component and data access controls
 - **Data Isolation**: Users only access their relevant data
-- **Input Sanitization**: Comprehensive form validation
+- **Input Sanitization**: Comprehensive form validation with Zod
 - **Session Security**: Secure session management
+
+## Form Validation Schemas
+
+### Authentication Forms
+```typescript
+// Login validation
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+// Registration validation
+const registrationSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+```
+
+### Property Management Forms
+```typescript
+// Property submission validation
+const propertySchema = z.object({
+  title: z.string().min(1, 'Property title is required'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  address: z.string().min(1, 'Address is required'),
+  images: z.array(z.string().url('Please enter a valid URL')).min(1, 'At least one image is required'),
+  amenities: z.array(z.string().min(1, 'Amenity cannot be empty')).min(1, 'At least one amenity is required'),
+  bedrooms: z.number().min(1, 'At least 1 bedroom is required'),
+  bathrooms: z.number().min(1, 'At least 1 bathroom is required'),
+  maxGuests: z.number().min(1, 'At least 1 guest capacity is required'),
+  proposedRate: z.number().min(1, 'Rate must be greater than 0'),
+});
+```
 
 ## Current System Status
 
 ### ✅ Implemented Features
 - Complete user authentication and role management
-- Property submission and approval workflow
+- Property submission and approval workflow with React Hook Form
 - Advanced booking system with conflict prevention
 - Contract management with template system
-- Concern reporting and job order creation
-- Review system with photo support
+- Concern reporting and job order creation with validated forms
+- Review system with photo support and form validation
 - Comprehensive analytics dashboards
 - User registration with merchant verification
 - Real-time data synchronization
 - Export functionality
+- **React Hook Form integration** across all forms
+- **Zod validation schemas** for all user inputs
+- **Type-safe form handling** with TypeScript
 
 ### 🔄 System Capabilities
 - **Data Persistence**: All data persists across sessions via localStorage
 - **Real-time Updates**: Changes reflect immediately across the platform
 - **Conflict Prevention**: Robust validation prevents booking conflicts
+- **Form Validation**: Client-side and runtime validation with user-friendly errors
 - **Scalable Architecture**: Modular design supports feature expansion
 - **Cross-platform Compatibility**: Works across all modern browsers
 
@@ -200,15 +269,36 @@ Use these accounts to explore different user experiences:
 **Customer 1**: `customer@example.com` / `customer123`
 **Customer 2**: `alice@example.com` / `customer123`
 
+## Development Guidelines
+
+### Form Development
+1. **Create Zod Schema**: Define validation schema in `/src/lib/validations.ts`
+2. **Generate Types**: Export TypeScript types from Zod schemas
+3. **Implement Form**: Use React Hook Form with zodResolver
+4. **Add Validation**: Apply schema validation to form fields
+5. **Handle Errors**: Display user-friendly error messages
+
+### Component Structure
+```
+src/
+├── components/           # React components
+├── lib/
+│   ├── utils.ts         # Utility functions
+│   └── validations.ts   # Zod schemas and types
+├── hooks/               # Custom React hooks
+├── contexts/            # React Context providers
+└── data/               # JSON data files
+```
+
 ## System Workflows
 
 ### Property Onboarding
 1. Unit owner registers and awaits verification
 2. Property manager verifies the owner
-3. Owner submits property with details and proposed rate
+3. Owner submits property with validated form data
 4. Property manager reviews and approves with final rate
 5. Contract is automatically generated and sent
-6. Owner reviews and accepts contract
+6. Owner reviews and accepts contract with form validation
 7. Property goes live and becomes bookable
 
 ### Booking Process
@@ -220,11 +310,11 @@ Use these accounts to explore different user experiences:
 6. All parties receive confirmation
 
 ### Issue Resolution
-1. Guest reports concern during active stay
+1. Guest reports concern during active stay with validated form
 2. System notifies property owner and manager
 3. Property manager can create job order if needed
 4. Assigned team receives work order with details
 5. Progress is tracked until resolution
 6. Guest confirms issue resolution
 
-This platform demonstrates a complete property management ecosystem with sophisticated workflows, real-time data management, and comprehensive user experiences for all stakeholder types.
+This platform demonstrates a complete property management ecosystem with sophisticated workflows, real-time data management, comprehensive form validation, and excellent user experiences for all stakeholder types.

@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Star, Camera, CheckCircle, Filter } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { reviewSchema, type ReviewFormData } from '@/lib/validations';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import reviewsData from '../data/reviews.json';
 import bookingsData from '../data/bookings.json';
 
@@ -29,10 +36,14 @@ const ReviewSystem: React.FC<ReviewSystemProps> = ({ propertyId, showAddReview =
   const [bookings] = useLocalStorage('bookings', bookingsData.bookings);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [ratingFilter, setRatingFilter] = useState('all');
-  const [newReview, setNewReview] = useState({
-    rating: 5,
-    comment: '',
-    images: ['']
+
+  const form = useForm<ReviewFormData>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
+      rating: 5,
+      comment: '',
+      images: ['']
+    }
   });
 
   const propertyReviews = reviews.filter((r: Review) => r.propertyId === propertyId);
@@ -59,8 +70,7 @@ const ReviewSystem: React.FC<ReviewSystemProps> = ({ propertyId, showAddReview =
     return userBookings.length > 0 && !existingReview;
   };
 
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitReview = (data: ReviewFormData) => {
     if (!user) return;
 
     const userBooking = bookings.find((b: any) => 
@@ -76,9 +86,9 @@ const ReviewSystem: React.FC<ReviewSystemProps> = ({ propertyId, showAddReview =
       propertyId,
       customerId: user.id,
       bookingId: userBooking.id,
-      rating: newReview.rating,
-      comment: newReview.comment,
-      images: newReview.images.filter(img => img.trim() !== ''),
+      rating: data.rating,
+      comment: data.comment,
+      images: data.images?.filter(img => img.trim() !== '') || [],
       createdAt: new Date().toISOString(),
       customerName: user.name,
       verified: true
@@ -86,21 +96,18 @@ const ReviewSystem: React.FC<ReviewSystemProps> = ({ propertyId, showAddReview =
 
     setReviews([...reviews, review]);
     setShowReviewForm(false);
-    setNewReview({ rating: 5, comment: '', images: [''] });
+    form.reset();
   };
 
   const addImageField = () => {
-    setNewReview(prev => ({
-      ...prev,
-      images: [...prev.images, '']
-    }));
+    const currentImages = form.getValues('images') || [];
+    form.setValue('images', [...currentImages, '']);
   };
 
   const updateImage = (index: number, value: string) => {
-    setNewReview(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => i === index ? value : img)
-    }));
+    const currentImages = form.getValues('images') || [];
+    const updatedImages = currentImages.map((img, i) => i === index ? value : img);
+    form.setValue('images', updatedImages);
   };
 
   const renderStars = (rating: number, interactive = false, onRate?: (rating: number) => void) => {
@@ -243,44 +250,49 @@ const ReviewSystem: React.FC<ReviewSystemProps> = ({ propertyId, showAddReview =
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitReview} className="space-y-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmitReview)} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     Rating
                   </label>
-                  {renderStars(newReview.rating, true, (rating) => 
-                    setNewReview(prev => ({ ...prev, rating }))
+                  {renderStars(form.watch('rating'), true, (rating) => 
+                    form.setValue('rating', rating)
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Review
-                  </label>
-                  <textarea
-                    value={newReview.comment}
-                    onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    rows={4}
-                    placeholder="Share your experience..."
-                    required
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="comment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Review</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          rows={4} 
+                          placeholder="Share your experience..." 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     <Camera className="w-4 h-4 inline mr-1" />
                     Photos (optional)
                   </label>
                   <div className="space-y-2">
-                    {newReview.images.map((image, index) => (
+                    {(form.watch('images') || ['']).map((image, index) => (
                       <input
                         key={index}
                         type="url"
                         value={image}
                         onChange={(e) => updateImage(index, e.target.value)}
                         placeholder="https://example.com/image.jpg"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     ))}
                     <button
@@ -294,21 +306,23 @@ const ReviewSystem: React.FC<ReviewSystemProps> = ({ propertyId, showAddReview =
                 </div>
 
                 <div className="flex space-x-4">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setShowReviewForm(false)}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors"
+                    variant="outline"
+                    className="flex-1"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    className="flex-1"
                   >
                     Submit Review
-                  </button>
+                  </Button>
                 </div>
-              </form>
+                </form>
+              </Form>
             </div>
           </div>
         </div>

@@ -10,9 +10,16 @@ import {
   Eye,
   Edit,
 } from "lucide-react";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import ContractReviewSystem from "./ContractReviewSystem";
+import { propertySchema, type PropertyFormData } from '@/lib/validations';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import propertiesData from "../data/properties.json";
 import contractsData from "../data/contracts.json";
 import bookingsData from "../data/bookings.json";
@@ -62,16 +69,20 @@ const UnitOwnerDashboard: React.FC = () => {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
   );
-  const [newProperty, setNewProperty] = useState({
-    title: "",
-    description: "",
-    address: "",
-    images: [""],
-    amenities: [""],
-    bedrooms: 1,
-    bathrooms: 1,
-    maxGuests: 1,
-    proposedRate: 100,
+
+  const form = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      address: "",
+      images: [""],
+      amenities: [""],
+      bedrooms: 1,
+      bathrooms: 1,
+      maxGuests: 1,
+      proposedRate: 100,
+    },
   });
 
   const bookings = bookingsData.bookings;
@@ -120,8 +131,7 @@ const UnitOwnerDashboard: React.FC = () => {
 
   const handleCloseForm = () => {
     setShowNewPropertyForm(false);
-    // Reset form data when closing
-    setNewProperty({
+    form.reset({
       title: "",
       description: "",
       address: "",
@@ -134,17 +144,17 @@ const UnitOwnerDashboard: React.FC = () => {
     });
   };
 
-  const handleSubmitProperty = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitProperty = (data: PropertyFormData) => {
+    const filteredData = {
+      ...data,
+      images: data.images.filter((img) => img.trim() !== ""),
+      amenities: data.amenities.filter((amenity) => amenity.trim() !== ""),
+    };
 
     const property = {
       id: `prop-${Date.now()}`,
       ownerId: user?.id || "",
-      ...newProperty,
-      images: newProperty.images.filter((img) => img.trim() !== ""),
-      amenities: newProperty.amenities.filter(
-        (amenity) => amenity.trim() !== ""
-      ),
+      ...filteredData,
       status: "pending_review",
       submittedAt: new Date().toISOString(),
       finalRate: null,
@@ -155,33 +165,27 @@ const UnitOwnerDashboard: React.FC = () => {
   };
 
   const addImageField = () => {
-    setNewProperty((prev) => ({
-      ...prev,
-      images: [...prev.images, ""],
-    }));
+    const currentImages = form.getValues('images');
+    form.setValue('images', [...currentImages, ""]);
   };
 
   const updateImage = (index: number, value: string) => {
-    setNewProperty((prev) => ({
-      ...prev,
-      images: prev.images.map((img, i) => (i === index ? value : img)),
-    }));
+    const currentImages = form.getValues('images');
+    const updatedImages = currentImages.map((img, i) => (i === index ? value : img));
+    form.setValue('images', updatedImages);
   };
 
   const addAmenityField = () => {
-    setNewProperty((prev) => ({
-      ...prev,
-      amenities: [...prev.amenities, ""],
-    }));
+    const currentAmenities = form.getValues('amenities');
+    form.setValue('amenities', [...currentAmenities, ""]);
   };
 
   const updateAmenity = (index: number, value: string) => {
-    setNewProperty((prev) => ({
-      ...prev,
-      amenities: prev.amenities.map((amenity, i) =>
-        i === index ? value : amenity
-      ),
-    }));
+    const currentAmenities = form.getValues('amenities');
+    const updatedAmenities = currentAmenities.map((amenity, i) =>
+      i === index ? value : amenity
+    );
+    form.setValue('amenities', updatedAmenities);
   };
 
   const acceptContract = (contractId: string) => {
@@ -377,154 +381,146 @@ const UnitOwnerDashboard: React.FC = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitProperty} className="space-y-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmitProperty)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Property Title
-                    </label>
-                    <input
-                      type="text"
-                      value={newProperty.title}
-                      onChange={(e) =>
-                        setNewProperty((prev) => ({
-                          ...prev,
-                          title: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Property Title</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter property title" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={newProperty.description}
-                      onChange={(e) =>
-                        setNewProperty((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      rows={3}
-                      required
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} rows={3} placeholder="Describe your property" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      value={newProperty.address}
-                      onChange={(e) =>
-                        setNewProperty((prev) => ({
-                          ...prev,
-                          address: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter property address" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bedrooms
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={newProperty.bedrooms}
-                      onChange={(e) =>
-                        setNewProperty((prev) => ({
-                          ...prev,
-                          bedrooms: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="bedrooms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bedrooms</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            {...field} 
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bathrooms
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={newProperty.bathrooms}
-                      onChange={(e) =>
-                        setNewProperty((prev) => ({
-                          ...prev,
-                          bathrooms: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="bathrooms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bathrooms</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            {...field} 
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Guests
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={newProperty.maxGuests}
-                      onChange={(e) =>
-                        setNewProperty((prev) => ({
-                          ...prev,
-                          maxGuests: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="maxGuests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Guests</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            {...field} 
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Proposed Rate (per night)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-500">
-                        $
-                      </span>
-                      <input
-                        type="number"
-                        min="1"
-                        value={newProperty.proposedRate}
-                        onChange={(e) =>
-                          setNewProperty((prev) => ({
-                            ...prev,
-                            proposedRate: Number(e.target.value),
-                          }))
-                        }
-                        className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="proposedRate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Proposed Rate (per night)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-3 text-gray-500">$</span>
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              className="pl-8"
+                              {...field} 
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Images */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     Property Images (URLs)
                   </label>
                   <div className="space-y-2">
-                    {newProperty.images.map((image, index) => (
+                    {form.watch('images').map((image, index) => (
                       <input
                         key={index}
                         type="url"
                         value={image}
                         onChange={(e) => updateImage(index, e.target.value)}
                         placeholder="https://example.com/image.jpg"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     ))}
                     <button
@@ -539,18 +535,18 @@ const UnitOwnerDashboard: React.FC = () => {
 
                 {/* Amenities */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     Amenities
                   </label>
                   <div className="space-y-2">
-                    {newProperty.amenities.map((amenity, index) => (
+                    {form.watch('amenities').map((amenity, index) => (
                       <input
                         key={index}
                         type="text"
                         value={amenity}
                         onChange={(e) => updateAmenity(index, e.target.value)}
                         placeholder="e.g., WiFi, Kitchen, Pool"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     ))}
                     <button
@@ -564,21 +560,23 @@ const UnitOwnerDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex space-x-4">
-                  <button
+                  <Button
                     type="button"
                     onClick={handleCloseForm}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors"
+                    variant="outline"
+                    className="flex-1"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    className="flex-1"
                   >
                     Submit for Review
-                  </button>
+                  </Button>
                 </div>
-              </form>
+                </form>
+              </Form>
             </div>
           </div>
         </div>

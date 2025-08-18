@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import { AlertTriangle, MessageCircle, Clock, CheckCircle, Send } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { concernSchema, type ConcernFormData } from '@/lib/validations';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import concernsData from '../data/concerns.json';
 import bookingsData from '../data/bookings.json';
 import propertiesData from '../data/properties.json';
@@ -37,10 +45,14 @@ const ConcernSystem: React.FC = () => {
   const [showNewConcernForm, setShowNewConcernForm] = useState(false);
   const [selectedConcern, setSelectedConcern] = useState<Concern | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  const [newConcern, setNewConcern] = useState({
-    title: '',
-    description: '',
-    priority: 'medium'
+
+  const form = useForm<ConcernFormData>({
+    resolver: zodResolver(concernSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      priority: 'medium'
+    }
   });
 
   // Get current bookings for customer
@@ -74,8 +86,7 @@ const ConcernSystem: React.FC = () => {
     }
   };
 
-  const handleSubmitConcern = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitConcern = (data: ConcernFormData) => {
     if (!user) return;
 
     const currentBookings = getCurrentBookings();
@@ -90,10 +101,10 @@ const ConcernSystem: React.FC = () => {
       propertyId: booking.propertyId,
       customerId: user.id,
       ownerId: property?.ownerId || '',
-      title: newConcern.title,
-      description: newConcern.description,
+      title: data.title,
+      description: data.description,
       status: 'pending',
-      priority: newConcern.priority,
+      priority: data.priority,
       createdAt: new Date().toISOString(),
       customerName: user.name,
       messages: [
@@ -101,7 +112,7 @@ const ConcernSystem: React.FC = () => {
           id: `msg-${Date.now()}`,
           senderId: user.id,
           senderName: user.name,
-          message: newConcern.description,
+          message: data.description,
           timestamp: new Date().toISOString()
         }
       ]
@@ -109,7 +120,7 @@ const ConcernSystem: React.FC = () => {
 
     setConcerns([...concerns, concern]);
     setShowNewConcernForm(false);
-    setNewConcern({ title: '', description: '', priority: 'medium' });
+    form.reset();
   };
 
   const handleSendMessage = (concernId: string) => {
@@ -262,22 +273,25 @@ const ConcernSystem: React.FC = () => {
                             className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
                           >
                             <option value="pending">Pending</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                          </select>
-                        )}
-                        <button
-                          onClick={() => setSelectedConcern(concern)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                        >
-                          View Chat
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                <div className="flex space-x-4">
+                  <Button
+                    type="button"
+                    onClick={() => setShowNewConcernForm(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    className="flex-1"
+                  >
+                    Submit Concern
+                  </Button>
+                </div>
+              </form>
+            </Form>
           )}
         </div>
       </div>
@@ -401,30 +415,39 @@ const ConcernSystem: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="p-6 border-t border-gray-200">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSendMessage(selectedConcern.id);
-                    }
-                  }}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmitConcern)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Issue Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Brief description of the issue" />
+                      </FormControl>
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priority Level</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select priority level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Low - Can wait</SelectItem>
+                          <SelectItem value="medium">Medium - Should be addressed soon</SelectItem>
+                          <SelectItem value="high">High - Urgent attention needed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <button
-                  onClick={() => handleSendMessage(selectedConcern.id)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -433,4 +456,20 @@ const ConcernSystem: React.FC = () => {
   );
 };
 
-export default ConcernSystem;
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Detailed Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          rows={4} 
+                          placeholder="Please provide as much detail as possible about the issue" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
