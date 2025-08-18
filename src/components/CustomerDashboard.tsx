@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ReviewSystem from './ReviewSystem';
@@ -86,7 +93,6 @@ const CustomerDashboard: React.FC = () => {
       const startDate = new Date(booking.checkIn);
       const endDate = new Date(booking.checkOut);
       
-      // Add all dates from check-in to check-out (exclusive of check-out)
       const currentDate = new Date(startDate);
       while (currentDate < endDate) {
         bookedDates.push(currentDate.toISOString().split('T')[0]);
@@ -190,137 +196,133 @@ const CustomerDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Find Your Perfect Stay
-        </h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold">Find Your Perfect Stay</h1>
+        <p className="text-muted-foreground mt-2">
           Discover amazing properties for your next trip
         </p>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Search className="w-4 h-4 inline mr-1" />
-              Search Location
-            </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Enter city or property name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+      <Card className="mb-8">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="md:col-span-2">
+              <Label htmlFor="search" className="flex items-center">
+                <Search className="w-4 h-4 mr-1" />
+                Search Location
+              </Label>
+              <Input
+                id="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Enter city or property name"
+                className="mt-2"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Check-in
-            </label>
-            <input
-              type="date"
-              value={checkIn}
-              onChange={(e) => setCheckIn(e.target.value)}
-              min={new Date().toISOString().split("T")[0]}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+            <div>
+              <Label htmlFor="checkin" className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1" />
+                Check-in
+              </Label>
+              <Input
+                id="checkin"
+                type="date"
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                className="mt-2"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Check-out
-            </label>
-            <input
-              type="date"
-              value={checkOut}
-              onChange={(e) => setCheckOut(e.target.value)}
-              min={checkIn || new Date().toISOString().split("T")[0]}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+            <div>
+              <Label htmlFor="checkout" className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1" />
+                Check-out
+              </Label>
+              <Input
+                id="checkout"
+                type="date"
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
+                min={checkIn || new Date().toISOString().split("T")[0]}
+                className="mt-2"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Users className="w-4 h-4 inline mr-1" />
-              Guests
-            </label>
-            <select
-              value={guests}
-              onChange={(e) => setGuests(Number(e.target.value))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                <option key={num} value={num}>
-                  {num} Guest{num > 1 ? "s" : ""}
-                </option>
-              ))}
-            </select>
+            <div>
+              <Label className="flex items-center">
+                <Users className="w-4 h-4 mr-1" />
+                Guests
+              </Label>
+              <Select value={guests.toString()} onValueChange={(value) => setGuests(Number(value))}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num} Guest{num > 1 ? "s" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* My Bookings Section */}
       {customerBookings.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900">My Bookings</h2>
-          </div>
-          <div className="p-6">
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>My Bookings</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {customerBookings.map((booking: Booking) => {
                 const property = properties.find(
                   (p: Property) => p.id === booking.propertyId
                 );
                 return (
-                  <div
-                    key={booking.id}
-                    className="border border-gray-200 rounded-lg p-4"
-                  >
-                    <div className="flex items-start space-x-4">
-                      <img
-                        src={property?.images[0] || ""}
-                        alt={property?.title}
-                        className="w-20 h-20 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {property?.title}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {property?.address}
-                        </p>
-                        <div className="flex items-center space-x-4 mt-2 text-sm">
-                          <span className="text-gray-500">
-                            {new Date(booking.checkIn).toLocaleDateString()} -{" "}
-                            {new Date(booking.checkOut).toLocaleDateString()}
-                          </span>
-                          <span className="font-medium text-purple-600">
-                            ${booking.totalAmount}
-                          </span>
+                  <Card key={booking.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-4">
+                        <img
+                          src={property?.images[0] || ""}
+                          alt={property?.title}
+                          className="w-20 h-20 rounded-lg object-cover"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{property?.title}</h3>
+                          <p className="text-sm text-muted-foreground">{property?.address}</p>
+                          <div className="flex items-center space-x-4 mt-2 text-sm">
+                            <span className="text-muted-foreground">
+                              {new Date(booking.checkIn).toLocaleDateString()} -{" "}
+                              {new Date(booking.checkOut).toLocaleDateString()}
+                            </span>
+                            <Badge variant="secondary">${booking.totalAmount}</Badge>
+                          </div>
+                          <Badge variant="outline" className="mt-2">
+                            {booking.status}
+                          </Badge>
                         </div>
-                        <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                          {booking.status}
-                        </span>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProperties.length === 0 ? (
           <div className="col-span-full text-center py-12">
-            <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">
+            <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
               No properties found matching your criteria
             </p>
           </div>
@@ -335,10 +337,7 @@ const CustomerDashboard: React.FC = () => {
               isDateRangeAvailable(property.id, checkIn, checkOut);
 
             return (
-              <div
-                key={property.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
-              >
+              <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative">
                   <img
                     src={property.images[0]}
@@ -347,23 +346,19 @@ const CustomerDashboard: React.FC = () => {
                   />
                   {!isAvailable && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium">
-                        Not Available
-                      </span>
+                      <Badge variant="destructive">Not Available</Badge>
                     </div>
                   )}
                 </div>
 
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {property.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3 flex items-center">
+                <CardContent className="p-6">
+                  <CardTitle className="text-lg mb-2">{property.title}</CardTitle>
+                  <CardDescription className="flex items-center mb-3">
                     <MapPin className="w-4 h-4 mr-1" />
                     {property.address}
-                  </p>
+                  </CardDescription>
 
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                     <span>
                       {property.bedrooms} bed • {property.bathrooms} bath
                     </span>
@@ -372,16 +367,13 @@ const CustomerDashboard: React.FC = () => {
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {property.amenities.slice(0, 3).map((amenity, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center space-x-1 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium"
-                      >
+                      <Badge key={index} variant="secondary" className="text-xs">
                         {getAmenityIcon(amenity)}
-                        <span>{amenity}</span>
-                      </span>
+                        <span className="ml-1">{amenity}</span>
+                      </Badge>
                     ))}
                     {property.amenities.length > 3 && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         +{property.amenities.length - 3} more
                       </span>
                     )}
@@ -389,52 +381,40 @@ const CustomerDashboard: React.FC = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-2xl font-bold text-purple-600">
-                        ${rate}
-                      </span>
-                      <span className="text-gray-500 text-sm">/night</span>
+                      <span className="text-2xl font-bold">${rate}</span>
+                      <span className="text-muted-foreground text-sm">/night</span>
                       {checkIn && checkOut && (
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-muted-foreground">
                           Total: ${rate * nights} ({nights} nights)
                         </div>
                       )}
                     </div>
-                    <button
+                    <Button
                       onClick={() => {
                         setSelectedProperty(property);
                         setCurrentImageIndex(0);
                       }}
-                      className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                        isAvailable
-                          ? "bg-purple-600 hover:bg-purple-700 text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
                       disabled={!isAvailable}
                     >
                       {isAvailable ? "Book Now" : "Unavailable"}
-                    </button>
+                    </Button>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             );
           })
         )}
       </div>
 
       {/* Property Details Modal */}
-      {selectedProperty && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* X Button - Right Aligned */}
-              <div className="flex justify-end mb-4">
-                <button
-                  onClick={() => setSelectedProperty(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+      <Dialog open={!!selectedProperty} onOpenChange={() => setSelectedProperty(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedProperty && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedProperty.title}</DialogTitle>
+                <DialogDescription>{selectedProperty.address}</DialogDescription>
+              </DialogHeader>
 
               {/* Image Gallery */}
               <div className="relative mb-6">
@@ -446,28 +426,30 @@ const CustomerDashboard: React.FC = () => {
                   />
                   {selectedProperty.images.length > 1 && (
                     <>
-                      <button
+                      <Button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-opacity"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2"
                       >
                         <ChevronLeft className="w-5 h-5" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-opacity"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2"
                       >
                         <ChevronRight className="w-5 h-5" />
-                      </button>
+                      </Button>
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                         {selectedProperty.images.map((_, index) => (
-                          <button
+                          <Button
                             key={index}
                             onClick={() => setCurrentImageIndex(index)}
-                            className={`w-2 h-2 rounded-full transition-colors ${
-                              index === currentImageIndex
-                                ? "bg-white"
-                                : "bg-white bg-opacity-50"
-                            }`}
+                            variant={index === currentImageIndex ? "default" : "secondary"}
+                            size="sm"
+                            className="w-2 h-2 rounded-full p-0"
                           />
                         ))}
                       </div>
@@ -479,54 +461,37 @@ const CustomerDashboard: React.FC = () => {
               {/* Property Details */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {selectedProperty.title}
-                  </h2>
-                  <p className="text-gray-600 mb-4 flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    {selectedProperty.address}
-                  </p>
-
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
+                      <div className="text-2xl font-bold text-primary">
                         {selectedProperty.bedrooms}
                       </div>
-                      <div className="text-sm text-gray-600">Bedrooms</div>
+                      <div className="text-sm text-muted-foreground">Bedrooms</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
+                      <div className="text-2xl font-bold text-primary">
                         {selectedProperty.bathrooms}
                       </div>
-                      <div className="text-sm text-gray-600">Bathrooms</div>
+                      <div className="text-sm text-muted-foreground">Bathrooms</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
+                      <div className="text-2xl font-bold text-primary">
                         {selectedProperty.maxGuests}
                       </div>
-                      <div className="text-sm text-gray-600">Max Guests</div>
+                      <div className="text-sm text-muted-foreground">Max Guests</div>
                     </div>
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Description
-                    </h3>
-                    <p className="text-gray-600">
-                      {selectedProperty.description}
-                    </p>
+                    <h3 className="text-lg font-semibold mb-3">Description</h3>
+                    <p className="text-muted-foreground">{selectedProperty.description}</p>
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Amenities
-                    </h3>
+                    <h3 className="text-lg font-semibold mb-3">Amenities</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {selectedProperty.amenities.map((amenity, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center space-x-2 text-gray-700"
-                        >
+                        <div key={index} className="flex items-center space-x-2">
                           {getAmenityIcon(amenity)}
                           <span>{amenity}</span>
                         </div>
@@ -535,10 +500,8 @@ const CustomerDashboard: React.FC = () => {
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Host
-                    </h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-lg font-semibold mb-2">Host</h3>
+                    <p className="text-muted-foreground">
                       {getOwnerName(selectedProperty.ownerId)}
                     </p>
                   </div>
@@ -553,163 +516,136 @@ const CustomerDashboard: React.FC = () => {
                 </div>
 
                 {/* Booking Panel */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <div className="mb-6">
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-3xl font-bold text-purple-600">
-                        $
-                        {selectedProperty.finalRate ||
-                          selectedProperty.proposedRate}
-                      </span>
-                      <span className="text-gray-600">/ night</span>
-                    </div>
-                  </div>
-
-                  {/* Date Selection */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Select Dates
-                      </label>
-                      <button
-                        onClick={() => setShowCalendar(!showCalendar)}
-                        className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-                      >
-                        {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
-                      </button>
-                    </div>
-
-                    {showCalendar ? (
-                      <BookingAvailabilityCalendar
-                        propertyId={selectedProperty.id}
-                        bookedDates={getBookedDatesForProperty(selectedProperty.id)}
-                        selectedCheckIn={checkIn}
-                        selectedCheckOut={checkOut}
-                        onDateSelect={(checkInDate, checkOutDate) => {
-                          setCheckIn(checkInDate);
-                          setCheckOut(checkOutDate);
-                        }}
-                        minNights={1}
-                      />
-                    ) : (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Check-in
-                          </label>
-                          <input
-                            type="date"
-                            value={checkIn}
-                            onChange={(e) => setCheckIn(e.target.value)}
-                            min={new Date().toISOString().split("T")[0]}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Check-out
-                          </label>
-                          <input
-                            type="date"
-                            value={checkOut}
-                            onChange={(e) => setCheckOut(e.target.value)}
-                            min={
-                              checkIn || new Date().toISOString().split("T")[0]
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="mb-6">
+                      <div className="flex items-baseline space-x-2">
+                        <span className="text-3xl font-bold">
+                          ${selectedProperty.finalRate || selectedProperty.proposedRate}
+                        </span>
+                        <span className="text-muted-foreground">/ night</span>
                       </div>
+                    </div>
+
+                    {/* Date Selection */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <Label>Select Dates</Label>
+                        <Button
+                          onClick={() => setShowCalendar(!showCalendar)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+                        </Button>
+                      </div>
+
+                      {showCalendar ? (
+                        <BookingAvailabilityCalendar
+                          propertyId={selectedProperty.id}
+                          bookedDates={getBookedDatesForProperty(selectedProperty.id)}
+                          selectedCheckIn={checkIn}
+                          selectedCheckOut={checkOut}
+                          onDateSelect={(checkInDate, checkOutDate) => {
+                            setCheckIn(checkInDate);
+                            setCheckOut(checkOutDate);
+                          }}
+                          minNights={1}
+                        />
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="modal-checkin">Check-in</Label>
+                            <Input
+                              id="modal-checkin"
+                              type="date"
+                              value={checkIn}
+                              onChange={(e) => setCheckIn(e.target.value)}
+                              min={new Date().toISOString().split("T")[0]}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="modal-checkout">Check-out</Label>
+                            <Input
+                              id="modal-checkout"
+                              type="date"
+                              value={checkOut}
+                              onChange={(e) => setCheckOut(e.target.value)}
+                              min={checkIn || new Date().toISOString().split("T")[0]}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mb-6">
+                      <Label>Guests</Label>
+                      <Select value={guests.toString()} onValueChange={(value) => setGuests(Number(value))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: selectedProperty.maxGuests }, (_, i) => i + 1).map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num} Guest{num > 1 ? "s" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {checkIn && checkOut && (
+                      <Card className="mb-6">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-muted-foreground">
+                              ${selectedProperty.finalRate || selectedProperty.proposedRate} × {calculateNights(checkIn, checkOut)} nights
+                            </span>
+                            <span>
+                              ${(selectedProperty.finalRate || selectedProperty.proposedRate) * calculateNights(checkIn, checkOut)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
+                            <span>Total</span>
+                            <span>
+                              ${(selectedProperty.finalRate || selectedProperty.proposedRate) * calculateNights(checkIn, checkOut)}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
                     )}
-                  </div>
 
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Guests
-                      </label>
-                      <select
-                        value={guests}
-                        onChange={(e) => setGuests(Number(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => handleBookProperty(selectedProperty)}
+                        disabled={
+                          !checkIn ||
+                          !checkOut ||
+                          !isDateRangeAvailable(selectedProperty.id, checkIn, checkOut)
+                        }
+                        className="w-full"
                       >
-                        {Array.from(
-                          { length: selectedProperty.maxGuests },
-                          (_, i) => i + 1
-                        ).map((num) => (
-                          <option key={num} value={num}>
-                            {num} Guest{num > 1 ? "s" : ""}
-                          </option>
-                        ))}
-                      </select>
+                        {checkIn && checkOut
+                          ? isDateRangeAvailable(selectedProperty.id, checkIn, checkOut)
+                            ? "Confirm Booking"
+                            : "Not Available for Selected Dates"
+                          : "Select Dates to Book"}
+                      </Button>
+                      <Button
+                        onClick={() => setSelectedProperty(null)}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Cancel
+                      </Button>
                     </div>
-                  </div>
-
-                  {checkIn && checkOut && (
-                    <div className="border-t pt-4 mb-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-600">
-                          $
-                          {selectedProperty.finalRate ||
-                            selectedProperty.proposedRate}{" "}
-                          × {calculateNights(checkIn, checkOut)} nights
-                        </span>
-                        <span className="text-gray-900">
-                          $
-                          {(selectedProperty.finalRate ||
-                            selectedProperty.proposedRate) *
-                            calculateNights(checkIn, checkOut)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
-                        <span>Total</span>
-                        <span>
-                          $
-                          {(selectedProperty.finalRate ||
-                            selectedProperty.proposedRate) *
-                            calculateNights(checkIn, checkOut)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => handleBookProperty(selectedProperty)}
-                      disabled={
-                        !checkIn ||
-                        !checkOut ||
-                        !isDateRangeAvailable(
-                          selectedProperty.id,
-                          checkIn,
-                          checkOut
-                        )
-                      }
-                      className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-                    >
-                      {checkIn && checkOut
-                        ? isDateRangeAvailable(
-                            selectedProperty.id,
-                            checkIn,
-                            checkOut
-                          )
-                          ? "Confirm Booking"
-                          : "Not Available for Selected Dates"
-                        : "Select Dates to Book"}
-                    </button>
-                    <button
-                      onClick={() => setSelectedProperty(null)}
-                      className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

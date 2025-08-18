@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { Building, Users, CheckCircle, Clock, XCircle, DollarSign, FileText, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
@@ -79,7 +86,6 @@ const PropertyManagerDashboard: React.FC = () => {
     setProperties(updatedProperties);
 
     if (reviewMode === 'approve') {
-      // Send contract
       const newContract = {
         id: `contract-${Date.now()}`,
         propertyId: selectedProperty.id,
@@ -92,7 +98,6 @@ const PropertyManagerDashboard: React.FC = () => {
       
       setContracts([...contracts, newContract]);
 
-      // Update property status to show contract was sent
       const propertiesWithContract = updatedProperties.map((p: Property) => {
         if (p.id === selectedProperty.id) {
           return { ...p, contractSentAt: new Date().toISOString() };
@@ -106,217 +111,224 @@ const PropertyManagerDashboard: React.FC = () => {
     setReviewMode(null);
   };
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'pending_review': return 'secondary';
+      case 'approved': return 'default';
+      case 'rejected': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Property Manager Dashboard</h1>
-        <p className="text-gray-600 mt-2">Manage properties, owners, and bookings</p>
+        <h1 className="text-3xl font-bold">Property Manager Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Manage properties, owners, and bookings</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Pending Reviews</p>
-              <p className="text-3xl font-bold text-orange-600">{pendingProperties.length}</p>
-            </div>
-            <Clock className="w-8 h-8 text-orange-600" />
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{pendingProperties.length}</div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Active Properties</p>
-              <p className="text-3xl font-bold text-blue-600">{approvedProperties.length}</p>
-            </div>
-            <Building className="w-8 h-8 text-blue-600" />
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Properties</CardTitle>
+            <Building className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{approvedProperties.length}</div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Bookings</p>
-              <p className="text-3xl font-bold text-emerald-600">{totalBookings}</p>
-            </div>
-            <Users className="w-8 h-8 text-emerald-600" />
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-600">{totalBookings}</div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-purple-600">${totalRevenue.toLocaleString()}</p>
-            </div>
-            <DollarSign className="w-8 h-8 text-purple-600" />
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">${totalRevenue.toLocaleString()}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Pending Properties Review */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center">
             <Clock className="w-5 h-5 mr-2 text-orange-500" />
             Properties Pending Review ({pendingProperties.length})
-          </h2>
-        </div>
+          </CardTitle>
+        </CardHeader>
 
-        <div className="p-6">
+        <CardContent>
           {pendingProperties.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No properties pending review</p>
+            <p className="text-muted-foreground text-center py-8">No properties pending review</p>
           ) : (
             <div className="space-y-4">
               {pendingProperties.map((property: Property) => (
-                <div key={property.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={property.images[0]}
-                          alt={property.title}
-                          className="w-20 h-20 rounded-lg object-cover"
-                        />
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{property.title}</h3>
-                          <p className="text-gray-600">{property.address}</p>
-                          <p className="text-sm text-gray-500">Owner: {getOwnerName(property.ownerId)}</p>
-                          <div className="flex items-center space-x-4 mt-2">
-                            <span className="text-sm text-gray-600">
-                              {property.bedrooms} bed, {property.bathrooms} bath
-                            </span>
-                            <span className="text-sm font-medium text-green-600">
-                              Proposed: ${property.proposedRate}/night
-                            </span>
+                <Card key={property.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={property.images[0]}
+                            alt={property.title}
+                            className="w-20 h-20 rounded-lg object-cover"
+                          />
+                          <div>
+                            <h3 className="text-lg font-semibold">{property.title}</h3>
+                            <p className="text-muted-foreground">{property.address}</p>
+                            <p className="text-sm text-muted-foreground">Owner: {getOwnerName(property.ownerId)}</p>
+                            <div className="flex items-center space-x-4 mt-2">
+                              <span className="text-sm">
+                                {property.bedrooms} bed, {property.bathrooms} bath
+                              </span>
+                              <Badge variant="secondary">
+                                Proposed: ${property.proposedRate}/night
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <div className="flex space-x-2 ml-4">
+                        <Button
+                          onClick={() => handlePropertyAction(property, 'approve')}
+                          size="sm"
+                          className="flex items-center space-x-1"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Approve</span>
+                        </Button>
+                        <Button
+                          onClick={() => handlePropertyAction(property, 'reject')}
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center space-x-1"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          <span>Reject</span>
+                        </Button>
+                        <Button
+                          onClick={() => setSelectedProperty(property)}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center space-x-1"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>View</span>
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex space-x-2 ml-4">
-                      <button
-                        onClick={() => handlePropertyAction(property, 'approve')}
-                        className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Approve</span>
-                      </button>
-                      <button
-                        onClick={() => handlePropertyAction(property, 'reject')}
-                        className="flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span>Reject</span>
-                      </button>
-                      <button
-                        onClick={() => setSelectedProperty(property)}
-                        className="flex items-center space-x-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Review Modal */}
-      {selectedProperty && reviewMode && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+      <Dialog open={!!(selectedProperty && reviewMode)} onOpenChange={() => {
+        setSelectedProperty(null);
+        setReviewMode(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
               {reviewMode === 'approve' ? 'Approve Property' : 'Reject Property'}
-            </h3>
-            
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-900">{selectedProperty.title}</h4>
-              <p className="text-gray-600">{selectedProperty.address}</p>
-            </div>
-
+            </DialogTitle>
+            <DialogDescription>
+              {selectedProperty?.title} - {selectedProperty?.address}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
             {reviewMode === 'approve' ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Final Room Rate (per night)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-3 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      value={finalRate}
-                      onChange={(e) => setFinalRate(Number(e.target.value))}
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    />
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Owner proposed: ${selectedProperty.proposedRate}
-                  </p>
+              <div>
+                <Label htmlFor="finalRate">Final Room Rate (per night)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-muted-foreground">$</span>
+                  <Input
+                    id="finalRate"
+                    type="number"
+                    value={finalRate}
+                    onChange={(e) => setFinalRate(Number(e.target.value))}
+                    className="pl-8"
+                  />
                 </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Owner proposed: ${selectedProperty?.proposedRate}
+                </p>
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rejection Reason
-                </label>
-                <textarea
+                <Label htmlFor="rejectionReason">Rejection Reason</Label>
+                <Textarea
+                  id="rejectionReason"
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  rows={3}
+                  placeholder="Please provide a reason for rejection..."
                   required
                 />
               </div>
             )}
 
-            <div className="flex space-x-3 mt-6">
-              <button
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
                 onClick={() => {
                   setSelectedProperty(null);
                   setReviewMode(null);
                 }}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
+                className="flex-1"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={confirmAction}
                 disabled={reviewMode === 'reject' && !rejectionReason.trim()}
-                className={`flex-1 text-white px-4 py-2 rounded-lg transition-colors ${
-                  reviewMode === 'approve'
-                    ? 'bg-emerald-600 hover:bg-emerald-700'
-                    : 'bg-red-600 hover:bg-red-700'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className="flex-1"
+                variant={reviewMode === 'approve' ? 'default' : 'destructive'}
               >
                 {reviewMode === 'approve' ? 'Approve & Send Contract' : 'Reject Property'}
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Property Details Modal */}
-      {selectedProperty && !reviewMode && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-2xl font-semibold text-gray-900">{selectedProperty.title}</h3>
-                <button
-                  onClick={() => setSelectedProperty(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XCircle className="w-6 h-6" />
-                </button>
-              </div>
+      <Dialog open={!!(selectedProperty && !reviewMode)} onOpenChange={() => setSelectedProperty(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedProperty?.title}</DialogTitle>
+            <DialogDescription>{selectedProperty?.address}</DialogDescription>
+          </DialogHeader>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
+          {selectedProperty && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
                 {selectedProperty.images.map((image, index) => (
                   <img
                     key={index}
@@ -329,55 +341,52 @@ const PropertyManagerDashboard: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-900">Description</h4>
-                  <p className="text-gray-600 mt-1">{selectedProperty.description}</p>
+                  <h4 className="font-medium mb-2">Description</h4>
+                  <p className="text-muted-foreground">{selectedProperty.description}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900">Details</h4>
-                  <div className="grid grid-cols-2 gap-4 mt-2">
+                  <h4 className="font-medium mb-2">Details</h4>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-sm text-gray-500">Bedrooms:</span>
-                      <span className="ml-2 text-gray-900">{selectedProperty.bedrooms}</span>
+                      <span className="text-sm text-muted-foreground">Bedrooms:</span>
+                      <span className="ml-2">{selectedProperty.bedrooms}</span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Bathrooms:</span>
-                      <span className="ml-2 text-gray-900">{selectedProperty.bathrooms}</span>
+                      <span className="text-sm text-muted-foreground">Bathrooms:</span>
+                      <span className="ml-2">{selectedProperty.bathrooms}</span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Max Guests:</span>
-                      <span className="ml-2 text-gray-900">{selectedProperty.maxGuests}</span>
+                      <span className="text-sm text-muted-foreground">Max Guests:</span>
+                      <span className="ml-2">{selectedProperty.maxGuests}</span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Proposed Rate:</span>
-                      <span className="ml-2 text-gray-900">${selectedProperty.proposedRate}/night</span>
+                      <span className="text-sm text-muted-foreground">Proposed Rate:</span>
+                      <span className="ml-2">${selectedProperty.proposedRate}/night</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900">Amenities</h4>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <h4 className="font-medium mb-2">Amenities</h4>
+                  <div className="flex flex-wrap gap-2">
                     {selectedProperty.amenities.map((amenity, index) => (
-                      <span
-                        key={index}
-                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                      >
+                      <Badge key={index} variant="secondary">
                         {amenity}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900">Owner</h4>
-                  <p className="text-gray-600 mt-1">{getOwnerName(selectedProperty.ownerId)}</p>
+                  <h4 className="font-medium mb-2">Owner</h4>
+                  <p className="text-muted-foreground">{getOwnerName(selectedProperty.ownerId)}</p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
