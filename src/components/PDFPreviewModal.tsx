@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ZoomIn, ZoomOut, RotateCw, Download, FileText, X, PenTool, Save, Upload } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCw, Download, FileText, X, PenTool, Save } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 import { PDFDocument, rgb } from 'pdf-lib';
 
@@ -109,9 +109,17 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
     setIsProcessing(true);
 
     try {
-      // Fetch the original PDF
-      const response = await fetch(pdfUrl);
-      const pdfBytes = await response.arrayBuffer();
+      let pdfBytes: ArrayBuffer;
+      
+      if (pdfUrl.startsWith('blob:')) {
+        // Handle blob URLs (generated PDFs)
+        const response = await fetch(pdfUrl);
+        pdfBytes = await response.arrayBuffer();
+      } else {
+        // Handle regular URLs
+        const response = await fetch(pdfUrl);
+        pdfBytes = await response.arrayBuffer();
+      }
 
       // Load the PDF document
       const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -119,7 +127,8 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
       const page = pages[signaturePosition.page - 1];
 
       // Convert signature data URL to PNG bytes
-      const signatureImageBytes = await fetch(signatureDataUrl).then(res => res.arrayBuffer());
+      const signatureResponse = await fetch(signatureDataUrl);
+      const signatureImageBytes = await signatureResponse.arrayBuffer();
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
 
       // Get page dimensions
@@ -139,14 +148,14 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
 
       // Add signature metadata
       const now = new Date();
-      page.drawText(`Signed by: Unit Owner`, {
+      page.drawText(`Digitally signed by: Unit Owner`, {
         x: signatureX,
         y: signatureY - 15,
         size: 8,
         color: rgb(0.5, 0.5, 0.5),
       });
 
-      page.drawText(`Date: ${now.toLocaleDateString()}`, {
+      page.drawText(`Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, {
         x: signatureX,
         y: signatureY - 25,
         size: 8,

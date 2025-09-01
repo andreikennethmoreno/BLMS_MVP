@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { FileText, Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, Save, X, Eye } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import ContractPDFViewer from "./ContractPDFViewer";
 import formTemplatesData from "../data/formTemplates.json";
 
 interface ContractField {
@@ -52,6 +53,7 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
   const [editingTemplate, setEditingTemplate] =
     useState<ContractTemplate | null>(null);
   const [showNewTemplateForm, setShowNewTemplateForm] = useState(false);
+  const [showPDFPreview, setShowPDFPreview] = useState<ContractTemplate | null>(null);
   const [newTemplate, setNewTemplate] = useState({
     name: "Sample Contract Template",
     description: "Description of the sample contract template",
@@ -217,6 +219,13 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
 
             <div className="flex space-x-2">
               <button
+                onClick={() => setShowPDFPreview(template)}
+                className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                <span>Preview PDF</span>
+              </button>
+              <button
                 onClick={() => setEditingTemplate(template)}
                 className="flex-1 flex items-center justify-center space-x-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm transition-colors"
               >
@@ -233,6 +242,39 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
           </div>
         ))}
       </div>
+
+      {/* PDF Preview Modal */}
+      {showPDFPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Contract Template Preview</h3>
+                  <p className="text-gray-600">{showPDFPreview.name}</p>
+                </div>
+                <button
+                  onClick={() => setShowPDFPreview(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-gray-700 text-sm">
+                  This is a preview of how the contract template will appear as a PDF when sent to unit owners.
+                </p>
+              </div>
+
+              <ContractPDFViewer
+                template={showPDFPreview}
+                showSignatureOption={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit/New Template Modal */}
       {(editingTemplate || showNewTemplateForm) && (
