@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, X, Filter, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ReviewSystem from './ReviewSystem';
 import propertiesData from '../data/properties.json';
 import BookingAvailabilityCalendar from './BookingAvailabilityCalendar';
+import CheckoutPage from './CheckoutPage';
+import BookingSuccessPage from './BookingSuccessPage';
 import bookingsData from '../data/bookings.json';
 import usersData from '../data/users.json';
 
@@ -49,17 +51,66 @@ const CustomerDashboard: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [completedBooking, setCompletedBooking] = useState<any>(null);
+  const [timelineFilter, setTimelineFilter] = useState('all');
+  const [unitTypeFilter, setUnitTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
 
   const properties = propertiesData.properties.filter((p: Property) => p.status === 'approved');
   const users = usersData.users;
   const customerBookings = bookings.filter((b: Booking) => b.customerId === user?.id);
 
+  // Determine if property is short-term or long-term based on typical booking patterns
+  const getUnitType = (property: Property) => {
+    const rate = property.finalRate || property.proposedRate;
+    // Properties under $150/night are typically short-term, above are long-term
+    return rate < 150 ? 'short-term' : 'long-term';
+  };
+
   const filteredProperties = properties.filter((property: Property) => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.address.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGuests = property.maxGuests >= guests;
+    const matchesUnitType = unitTypeFilter === 'all' || getUnitType(property) === unitTypeFilter;
     
-    return matchesSearch && matchesGuests;
+    let matchesTimeline = true;
+    if (timelineFilter !== 'all') {
+      const submittedDate = new Date(property.submittedAt);
+      const now = new Date();
+      const daysAgo = Math.floor((now.getTime() - submittedDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      switch (timelineFilter) {
+        case 'week':
+          matchesTimeline = daysAgo <= 7;
+          break;
+        case 'month':
+          matchesTimeline = daysAgo <= 30;
+          break;
+        case 'quarter':
+          matchesTimeline = daysAgo <= 90;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesGuests && matchesUnitType && matchesTimeline;
+  });
+
+  // Sort properties
+  const sortedProperties = [...filteredProperties].sort((a, b) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      case 'oldest':
+        return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+      case 'price-low':
+        return (a.finalRate || a.proposedRate) - (b.finalRate || b.proposedRate);
+      case 'price-high':
+        return (b.finalRate || b.proposedRate) - (a.finalRate || a.proposedRate);
+      default:
+        return 0;
+    }
   });
 
   const getOwnerName = (ownerId: string) => {
@@ -133,27 +184,8 @@ const CustomerDashboard: React.FC = () => {
       return;
     }
 
-    const nights = calculateNights(checkIn, checkOut);
-    const totalAmount = nights * (property.finalRate || property.proposedRate);
-
-    const newBooking: Booking = {
-      id: `booking-${Date.now()}`,
-      propertyId: property.id,
-      customerId: user?.id || '',
-      checkIn,
-      checkOut,
-      guests,
-      totalAmount,
-      status: 'confirmed',
-      paymentStatus: 'paid',
-      bookedAt: new Date().toISOString(),
-      customerName: user?.name || '',
-      customerEmail: user?.email || ''
-    };
-
-    setBookings([...bookings, newBooking]);
-    setSelectedProperty(null);
-    alert('Booking confirmed! Check your bookings section for details.');
+    // Navigate to checkout
+    setShowCheckout(true);
   };
 
   const getAmenityIcon = (amenity: string) => {
@@ -186,6 +218,61 @@ const CustomerDashboard: React.FC = () => {
     }
   };
 
+  // Handle successful booking completion
+  const handleBookingComplete = () => {
+    const nights = calculateNights(checkIn, checkOut);
+    const rate = selectedProperty?.finalRate || selectedProperty?.proposedRate || 0;
+    const subtotal = rate * nights;
+    const serviceFee = Math.round(subtotal * 0.12);
+    const taxes = Math.round(subtotal * 0.08);
+    const total = subtotal + serviceFee + taxes;
+
+    const bookingDetails = {
+      id: `booking-${Date.now()}`,
+      propertyTitle: selectedProperty?.title || '',
+      propertyAddress: selectedProperty?.address || '',
+      checkIn,
+      checkOut,
+      guests,
+      totalAmount: total
+    };
+
+    setCompletedBooking(bookingDetails);
+    setShowCheckout(false);
+    setShowSuccess(true);
+    setSelectedProperty(null);
+  };
+
+  // Show checkout page
+  if (showCheckout && selectedProperty) {
+    return (
+      <CheckoutPage
+        property={selectedProperty}
+        checkIn={checkIn}
+        checkOut={checkOut}
+        guests={guests}
+        onBack={() => setShowCheckout(false)}
+        onComplete={handleBookingComplete}
+      />
+    );
+  }
+
+  // Show success page
+  if (showSuccess && completedBooking) {
+    return (
+      <BookingSuccessPage
+        booking={completedBooking}
+        onContinue={() => {
+          setShowSuccess(false);
+          setCompletedBooking(null);
+          setCheckIn('');
+          setCheckOut('');
+          setGuests(1);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -200,7 +287,7 @@ const CustomerDashboard: React.FC = () => {
 
       {/* Search and Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Search className="w-4 h-4 inline mr-1" />
@@ -260,6 +347,60 @@ const CustomerDashboard: React.FC = () => {
               ))}
             </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Filter className="w-4 h-4 inline mr-1" />
+              Unit Type
+            </label>
+            <select
+              value={unitTypeFilter}
+              onChange={(e) => setUnitTypeFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="all">All Types</option>
+              <option value="short-term">Short-term (&lt;$150/night)</option>
+              <option value="long-term">Long-term ($150+/night)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Clock className="w-4 h-4 inline mr-1" />
+              Timeline
+            </label>
+            <select
+              value={timelineFilter}
+              onChange={(e) => setTimelineFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="all">All Time</option>
+              <option value="week">Last Week</option>
+              <option value="month">Last Month</option>
+              <option value="quarter">Last Quarter</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Sort Options */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
+          </div>
+          
+          <div className="text-sm text-gray-600">
+            {sortedProperties.length} properties found
+          </div>
         </div>
       </div>
 
@@ -317,7 +458,7 @@ const CustomerDashboard: React.FC = () => {
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProperties.length === 0 ? (
+        {sortedProperties.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">
@@ -325,7 +466,7 @@ const CustomerDashboard: React.FC = () => {
             </p>
           </div>
         ) : (
-          filteredProperties.map((property: Property) => {
+          sortedProperties.map((property: Property) => {
             const rate = property.finalRate || property.proposedRate;
             const nights =
               checkIn && checkOut ? calculateNights(checkIn, checkOut) : 1;
@@ -333,6 +474,7 @@ const CustomerDashboard: React.FC = () => {
               !checkIn ||
               !checkOut ||
               isDateRangeAvailable(property.id, checkIn, checkOut);
+            const unitType = getUnitType(property);
 
             return (
               <div
@@ -345,6 +487,15 @@ const CustomerDashboard: React.FC = () => {
                     alt={property.title}
                     className="w-full h-48 object-cover"
                   />
+                  <div className="absolute top-3 left-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      unitType === 'short-term' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {unitType === 'short-term' ? 'Short-term' : 'Long-term'}
+                    </span>
+                  </div>
                   {!isAvailable && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                       <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium">
@@ -693,7 +844,7 @@ const CustomerDashboard: React.FC = () => {
                             checkIn,
                             checkOut
                           )
-                          ? "Confirm Booking"
+                          ? "Proceed to Checkout"
                           : "Not Available for Selected Dates"
                         : "Select Dates to Book"}
                     </button>

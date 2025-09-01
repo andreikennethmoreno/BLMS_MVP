@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building, Search, Filter, CheckCircle, XCircle, Clock, Eye, Edit, Trash2 } from 'lucide-react';
+import { Building, Search, Filter, CheckCircle, XCircle, Clock, Eye, Edit, Trash2, Calendar } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
@@ -26,9 +26,18 @@ const PropertyManagerProperties: React.FC = () => {
   const [properties] = useLocalStorage('properties', propertiesData.properties);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [unitTypeFilter, setUnitTypeFilter] = useState('all');
+  const [timelineFilter, setTimelineFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const users = usersData.users;
+
+  // Determine if property is short-term or long-term based on rate
+  const getUnitType = (property: Property) => {
+    const rate = property.finalRate || property.proposedRate;
+    return rate < 150 ? 'short-term' : 'long-term';
+  };
 
   const getOwnerName = (ownerId: string) => {
     const owner = users.find(u => u.id === ownerId);
@@ -60,8 +69,44 @@ const PropertyManagerProperties: React.FC = () => {
                          property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          getOwnerName(property.ownerId).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || property.status === statusFilter;
+    const matchesUnitType = unitTypeFilter === 'all' || getUnitType(property) === unitTypeFilter;
     
-    return matchesSearch && matchesStatus;
+    let matchesTimeline = true;
+    if (timelineFilter !== 'all') {
+      const submittedDate = new Date(property.submittedAt);
+      const now = new Date();
+      const daysAgo = Math.floor((now.getTime() - submittedDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      switch (timelineFilter) {
+        case 'week':
+          matchesTimeline = daysAgo <= 7;
+          break;
+        case 'month':
+          matchesTimeline = daysAgo <= 30;
+          break;
+        case 'quarter':
+          matchesTimeline = daysAgo <= 90;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesUnitType && matchesTimeline;
+  });
+
+  // Sort properties
+  const sortedProperties = [...filteredProperties].sort((a, b) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      case 'oldest':
+        return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+      case 'price-low':
+        return (a.finalRate || a.proposedRate) - (b.finalRate || b.proposedRate);
+      case 'price-high':
+        return (b.finalRate || b.proposedRate) - (a.finalRate || a.proposedRate);
+      default:
+        return 0;
+    }
   });
 
   const statusCounts = {
@@ -116,7 +161,7 @@ const PropertyManagerProperties: React.FC = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Search className="w-4 h-4 inline mr-1" />
@@ -148,6 +193,59 @@ const PropertyManagerProperties: React.FC = () => {
               <option value="pending_contract">Contract Pending</option>
             </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Unit Type
+            </label>
+            <select
+              value={unitTypeFilter}
+              onChange={(e) => setUnitTypeFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Types</option>
+              <option value="short-term">Short-term (&lt;$150/night)</option>
+              <option value="long-term">Long-term ($150+/night)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Calendar className="w-4 h-4 inline mr-1" />
+              Timeline
+            </label>
+            <select
+              value={timelineFilter}
+              onChange={(e) => setTimelineFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Time</option>
+              <option value="week">Last Week</option>
+              <option value="month">Last Month</option>
+              <option value="quarter">Last Quarter</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Sort Options */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
+          </div>
+          
+          <div className="text-sm text-gray-600">
+            {sortedProperties.length} properties found
+          </div>
         </div>
       </div>
 
@@ -155,19 +253,21 @@ const PropertyManagerProperties: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
           <h2 className="text-xl font-semibold text-gray-900">
-            Properties ({filteredProperties.length})
+            Properties ({sortedProperties.length})
           </h2>
         </div>
 
         <div className="p-6">
-          {filteredProperties.length === 0 ? (
+          {sortedProperties.length === 0 ? (
             <div className="text-center py-12">
               <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No properties found matching your criteria</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredProperties.map((property: Property) => (
+              {sortedProperties.map((property: Property) => {
+                const unitType = getUnitType(property);
+                return (
                 <div key={property.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative">
                     <img
@@ -175,10 +275,21 @@ const PropertyManagerProperties: React.FC = () => {
                       alt={property.title}
                       className="w-full h-48 object-cover"
                     />
-                    <div className="absolute top-3 right-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(property.status)}`}>
-                        {getStatusText(property.status)}
-                      </span>
+                    <div className="absolute top-3 right-3 space-y-2">
+                      <div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(property.status)}`}>
+                          {getStatusText(property.status)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          unitType === 'short-term' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {unitType === 'short-term' ? 'Short-term' : 'Long-term'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -216,7 +327,8 @@ const PropertyManagerProperties: React.FC = () => {
                     )}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>
