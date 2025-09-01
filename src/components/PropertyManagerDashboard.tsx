@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Building, Users, CheckCircle, Clock, XCircle, DollarSign, FileText, Eye } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import ContractPDFViewer from './ContractPDFViewer';
 import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
 import bookingsData from '../data/bookings.json';
@@ -31,6 +32,7 @@ const PropertyManagerDashboard: React.FC = () => {
   const [reviewMode, setReviewMode] = useState<'approve' | 'reject' | null>(null);
   const [finalRate, setFinalRate] = useState<number>(0);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [showContractPreview, setShowContractPreview] = useState<any>(null);
 
   const users = usersData.users;
   const bookings = bookingsData.bookings;
@@ -82,15 +84,27 @@ const PropertyManagerDashboard: React.FC = () => {
       // Send contract
       const newContract = {
         id: `contract-${Date.now()}`,
+        templateId: 'template-1', // Default template
         propertyId: selectedProperty.id,
         ownerId: selectedProperty.ownerId,
+        ownerName: getOwnerName(selectedProperty.ownerId),
+        ownerEmail: users.find(u => u.id === selectedProperty.ownerId)?.email || '',
+        templateName: 'Property Rental Contract',
         terms: `Standard property rental agreement with 15% platform commission. Final rate: $${finalRate}/night.`,
+        commissionPercentage: 15,
+        fields: [
+          { id: 'property_name', label: 'Property Name', type: 'text', required: true, value: selectedProperty.title },
+          { id: 'owner_name', label: 'Owner Name', type: 'text', required: true, value: getOwnerName(selectedProperty.ownerId) },
+          { id: 'rental_rate', label: 'Rental Rate (per night)', type: 'number', required: true, value: finalRate.toString() },
+          { id: 'commission_rate', label: 'Platform Commission (%)', type: 'number', required: true, value: '15' }
+        ],
         finalRate: finalRate,
         status: 'sent',
         sentAt: new Date().toISOString()
       };
       
       setContracts([...contracts, newContract]);
+      setShowContractPreview(newContract);
 
       // Update property status to show contract was sent
       const propertiesWithContract = updatedProperties.map((p: Property) => {
@@ -296,6 +310,43 @@ const PropertyManagerDashboard: React.FC = () => {
               >
                 {reviewMode === 'approve' ? 'Approve & Send Contract' : 'Reject Property'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contract Preview Modal */}
+      {showContractPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Contract Sent Successfully</h3>
+                  <p className="text-gray-600">Preview of the contract sent to {showContractPreview.ownerName}</p>
+                </div>
+                <button
+                  onClick={() => setShowContractPreview(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium text-green-900">Contract Sent</span>
+                </div>
+                <p className="text-green-800 text-sm mt-1">
+                  The contract has been sent to {showContractPreview.ownerName} for review and signature.
+                </p>
+              </div>
+
+              <ContractPDFViewer
+                contract={showContractPreview}
+                showSignatureOption={false}
+              />
             </div>
           </div>
         </div>
