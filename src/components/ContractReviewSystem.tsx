@@ -5,9 +5,12 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
+  Eye,
+  PenTool,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import ContractPDFViewer from "./ContractPDFViewer";
 
 interface Contract {
   id: string;
@@ -36,6 +39,7 @@ const ContractReviewSystem: React.FC = () => {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
   );
+  const [showPDFViewer, setShowPDFViewer] = useState<Contract | null>(null);
   const [disagreementReason, setDisagreementReason] = useState("");
   const [showDisagreementForm, setShowDisagreementForm] = useState(false);
 
@@ -110,6 +114,14 @@ const ContractReviewSystem: React.FC = () => {
     setDisagreementReason("");
   };
 
+  const handleSignatureComplete = (contractId: string, signedPdfBlob: Blob) => {
+    // In a real application, you would upload the signed PDF to your server
+    // For demo purposes, we'll automatically agree to the contract
+    handleAgreeToContract(contractId);
+    setShowPDFViewer(null);
+    alert('Contract signed and submitted successfully!');
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "sent":
@@ -147,6 +159,46 @@ const ContractReviewSystem: React.FC = () => {
               You have {pendingContracts.length} contract
               {pendingContracts.length > 1 ? "s" : ""} awaiting your review
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* PDF Viewer Modal */}
+      {showPDFViewer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Contract PDF Preview</h3>
+                  <p className="text-gray-600">{showPDFViewer.templateName}</p>
+                </div>
+                <button
+                  onClick={() => setShowPDFViewer(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <PenTool className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium text-blue-900">Digital Signature Required</span>
+                </div>
+                <p className="text-blue-800 text-sm mt-1">
+                  You can view the contract and add your digital signature directly on the PDF.
+                </p>
+              </div>
+
+              <ContractPDFViewer
+                contract={showPDFViewer}
+                showSignatureOption={true}
+                onSignatureComplete={(signedPdfBlob) => 
+                  handleSignatureComplete(showPDFViewer.id, signedPdfBlob)
+                }
+              />
+            </div>
           </div>
         </div>
       )}
@@ -202,6 +254,13 @@ const ContractReviewSystem: React.FC = () => {
 
                   {contract.status === "sent" && (
                     <div className="flex space-x-3">
+                      <button
+                        onClick={() => setShowPDFViewer(contract)}
+                        className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View PDF</span>
+                      </button>
                       <button
                         onClick={() => setSelectedContract(contract)}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
