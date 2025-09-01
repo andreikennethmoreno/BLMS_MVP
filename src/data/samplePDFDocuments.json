@@ -1,0 +1,29 @@
+{
+  "pdfDocuments": [
+    {
+      "id": "doc-1",
+      "title": "Property Management Agreement",
+      "description": "Standard agreement for property management services and commission structure",
+      "pdfUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "createdBy": "pm-1",
+      "createdAt": "2024-02-20T10:00:00Z",
+      "sentTo": ["owner-1", "owner-2"],
+      "category": "agreement",
+      "status": "sent",
+      "signatures": []
+    },
+    {
+      "id": "doc-2",
+      "title": "Property Inspection Checklist",
+      "description": "Comprehensive checklist for property condition and compliance verification",
+      "pdfUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "createdBy": "pm-1",
+      "createdAt": "2024-02-19T14:30:00Z",
+      "sentTo": ["owner-1"],
+      "category": "form",
+      "status": "sent",
+      "signatures": []
+    }
+  ],
+  "documentSignatures": []
+}
