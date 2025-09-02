@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/LoginForm';
-import Sidebar from './components/Sidebar';
+import AppLayout from './components/layout/AppLayout';
 import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
 import PropertyManagerOwners from './components/PropertyManagerOwners';
@@ -16,18 +16,37 @@ import ConcernSystem from './components/ConcernSystem';
 import JobOrderSystem from './components/JobOrderSystem';
 import FormTemplateSystem from './components/FormTemplateSystem';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import Navigation from './components/Navigation';
 
+/**
+ * Main App Content Component
+ * 
+ * Handles route rendering based on user role and current view.
+ * This is the central routing logic that determines which component
+ * to render based on the user's role and selected navigation item.
+ * 
+ * Data Flow:
+ * 1. Gets authenticated user from AuthContext
+ * 2. Determines current view from state
+ * 3. Renders appropriate component based on role + view combination
+ * 4. Wraps everything in AppLayout for consistent UI structure
+ */
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Show login form if user is not authenticated
   if (!isAuthenticated) {
     return <LoginForm />;
   }
 
+  /**
+   * Route Rendering Logic
+   * 
+   * Maps view IDs to their corresponding components based on user role.
+   * Each role has access to different views as defined in config/routes.ts
+   */
   const renderContent = () => {
+    // Property Manager Routes
     if (user?.role === 'property_manager') {
       switch (currentView) {
         case 'dashboard':
@@ -53,6 +72,7 @@ const AppContent: React.FC = () => {
       }
     }
 
+    // Unit Owner Routes
     if (user?.role === 'unit_owner') {
       switch (currentView) {
         case 'dashboard':
@@ -72,6 +92,7 @@ const AppContent: React.FC = () => {
       }
     }
 
+    // Customer Routes
     if (user?.role === 'customer') {
       switch (currentView) {
         case 'browse':
@@ -89,31 +110,22 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <>
-      {user?.role === "customer" ? (
-        // Customer Navigation
-        <Navigation currentView={currentView} onViewChange={setCurrentView} />
-      ) : (
-        // Non-Customer Sidebar Layout
-        <div className="min-h-screen bg-gray-50 flex">
-          <Sidebar
-            currentView={currentView}
-            onViewChange={setCurrentView}
-            isCollapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-          />
-          <div className="flex-1 overflow-hidden">{renderContent()}</div>
-        </div>
-      )}
-
-      {/* Render content for customers under the navigation bar */}
-      {user?.role === "customer" && (
-        <div className="flex-1 overflow-hidden">{renderContent()}</div>
-      )}
-    </>
+    <AppLayout 
+      currentView={currentView} 
+      onViewChange={setCurrentView}
+    >
+      {renderContent()}
+    </AppLayout>
   );
 };
 
+/**
+ * Root App Component
+ * 
+ * Wraps the entire application with necessary providers.
+ * The AuthProvider manages user authentication state and provides
+ * it to all child components through React Context.
+ */
 function App() {
   return (
     <AuthProvider>

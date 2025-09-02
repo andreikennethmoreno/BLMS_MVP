@@ -8,6 +8,11 @@
  * 1. Property rates: proposedRate -> baseRate -> finalRate (with commission)
  * 2. Booking totals: rate * nights + fees + taxes = total
  * 3. Commission: baseRate * commissionPercentage = commissionAmount
+ * 
+ * Key Functions:
+ * - calculateFinalRate(): Adds commission to base rate
+ * - calculateBookingTotal(): Computes total cost with fees/taxes
+ * - isPropertyLiveForCustomers(): Checks if property is bookable
  */
 
 import { BUSINESS_CONFIG } from '../config/constants';
@@ -15,7 +20,13 @@ import type { Property, PropertyRateCalculation, BookingCalculation } from '../t
 
 /**
  * Calculate final rate with commission percentage
- * Used when property managers approve properties with adjusted rates
+ * 
+ * Process:
+ * 1. Calculate commission amount from base rate
+ * 2. Add commission to base rate for final customer-facing rate
+ * 3. Return complete calculation breakdown
+ * 
+ * Used when: Property managers approve properties with adjusted rates
  */
 export const calculateFinalRate = (
   baseRate: number, 
@@ -33,28 +44,15 @@ export const calculateFinalRate = (
 };
 
 /**
- * Update property with calculated commission rates
- * Used when creating or updating properties
- */
-export const updatePropertyWithCommission = (
-  property: Partial<Property>,
-  commissionPercentage: number = BUSINESS_CONFIG.DEFAULT_COMMISSION_PERCENTAGE
-): Partial<Property> => {
-  const baseRate = property.proposedRate || property.finalRate || BUSINESS_CONFIG.MIN_PROPERTY_RATE;
-  const calculation = calculateFinalRate(baseRate, commissionPercentage);
-  
-  return {
-    ...property,
-    baseRate: calculation.baseRate,
-    finalRate: calculation.finalRate,
-    commissionPercentage: calculation.commissionPercentage,
-    commissionAmount: calculation.commissionAmount
-  };
-};
-
-/**
  * Calculate booking total with fees and taxes
- * Used in checkout process and booking confirmations
+ * 
+ * Process:
+ * 1. Calculate subtotal (rate × nights)
+ * 2. Add service fee (12% of subtotal)
+ * 3. Add taxes (8% of subtotal)
+ * 4. Return complete breakdown for checkout display
+ * 
+ * Used in: Checkout process and booking confirmations
  */
 export const calculateBookingTotal = (
   ratePerNight: number,
@@ -76,8 +74,35 @@ export const calculateBookingTotal = (
 };
 
 /**
+ * Update property with calculated commission rates
+ * 
+ * Process:
+ * 1. Use proposed rate as base rate
+ * 2. Calculate final rate with commission
+ * 3. Return property with all rate fields populated
+ * 
+ * Used when: Creating or updating properties
+ */
+export const updatePropertyWithCommission = (
+  property: Partial<Property>,
+  commissionPercentage: number = BUSINESS_CONFIG.DEFAULT_COMMISSION_PERCENTAGE
+): Partial<Property> => {
+  const baseRate = property.proposedRate || property.finalRate || BUSINESS_CONFIG.MIN_PROPERTY_RATE;
+  const calculation = calculateFinalRate(baseRate, commissionPercentage);
+  
+  return {
+    ...property,
+    baseRate: calculation.baseRate,
+    finalRate: calculation.finalRate,
+    commissionPercentage: calculation.commissionPercentage,
+    commissionAmount: calculation.commissionAmount
+  };
+};
+
+/**
  * Calculate number of nights between two dates
- * Used throughout booking system
+ * 
+ * Used throughout: Booking system, pricing calculations, calendar displays
  */
 export const calculateNights = (checkIn: string, checkOut: string): number => {
   const start = new Date(checkIn);
@@ -88,7 +113,9 @@ export const calculateNights = (checkIn: string, checkOut: string): number => {
 
 /**
  * Get display rate for property (handles fallbacks)
- * Used in property listings and booking displays
+ * 
+ * Priority: finalRate > proposedRate > 0
+ * Used in: Property listings, booking displays, search results
  */
 export const getDisplayRate = (property: Property): number => {
   return property.finalRate || property.proposedRate || 0;
@@ -96,7 +123,13 @@ export const getDisplayRate = (property: Property): number => {
 
 /**
  * Validate property approval status for customer visibility
- * Used to filter properties that customers can see and book
+ * 
+ * Requirements for customer visibility:
+ * 1. Status must be "approved"
+ * 2. Contract must be accepted by owner
+ * 3. Final rate must be set and > 0
+ * 
+ * Used to: Filter properties that customers can see and book
  */
 export const isPropertyLiveForCustomers = (property: Property): boolean => {
   return (
@@ -109,7 +142,9 @@ export const isPropertyLiveForCustomers = (property: Property): boolean => {
 
 /**
  * Format rate display with base rate info
- * Used in property cards and details
+ * 
+ * Returns display information including whether commission is applied
+ * Used in: Property cards, details views, pricing displays
  */
 export const formatRateDisplay = (property: Property): {
   displayRate: number;
@@ -130,7 +165,9 @@ export const formatRateDisplay = (property: Property): {
 
 /**
  * Calculate platform revenue from bookings
- * Used in analytics dashboard
+ * 
+ * Calculates total commission earned by platform from all bookings
+ * Used in: Analytics dashboard, financial reporting
  */
 export const calculatePlatformRevenue = (bookings: any[], commissionRate: number = 0.15): number => {
   return Math.floor(
@@ -140,7 +177,9 @@ export const calculatePlatformRevenue = (bookings: any[], commissionRate: number
 
 /**
  * Calculate occupancy rate for properties
- * Used in analytics dashboard
+ * 
+ * Formula: (total booked nights / total possible nights) × 100
+ * Used in: Analytics dashboard, performance metrics
  */
 export const calculateOccupancyRate = (bookings: any[], properties: Property[], days: number = 30): number => {
   if (properties.length === 0) return 0;

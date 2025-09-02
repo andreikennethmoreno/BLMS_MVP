@@ -1,3 +1,26 @@
+/**
+ * Customer Dashboard Component
+ * 
+ * Main interface for customers to browse and book properties.
+ * 
+ * Features:
+ * - Property search with filters (location, dates, guests, type, timeline)
+ * - Real-time availability checking
+ * - Booking flow integration (browse -> select -> checkout -> success)
+ * - Personal booking history display
+ * 
+ * Data Flow:
+ * 1. Loads approved properties from localStorage
+ * 2. Filters properties based on search criteria and availability
+ * 3. Handles booking flow: selection -> calendar -> checkout -> confirmation
+ * 4. Updates bookings in localStorage when booking is completed
+ * 
+ * State Management:
+ * - Properties: Read from localStorage, filtered for customer visibility
+ * - Bookings: Read/write to localStorage for booking history
+ * - Search filters: Local component state
+ * - Booking flow: Local state for current booking process
+ */
 import React, { useState } from 'react';
 import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, X, Filter, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,34 +67,60 @@ interface Booking {
 
 const CustomerDashboard: React.FC = () => {
   const { user } = useAuth();
+  
+  // Data Management: Properties and bookings with real-time sync
   const [bookings, setBookings] = useLocalStorage('bookings', bookingsData.bookings);
   const [properties, setProperties] = useLocalStorage('properties', propertiesData.properties);
+  
+  // Search and Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
+  const [timelineFilter, setTimelineFilter] = useState('all');
+  const [unitTypeFilter, setUnitTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  
+  // Booking Flow State
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<any>(null);
-  const [timelineFilter, setTimelineFilter] = useState('all');
-  const [unitTypeFilter, setUnitTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
 
-  // Use live properties data and filter for approved properties with accepted contracts
+  /**
+   * Property Filtering Logic
+   * 
+   * Only show properties that are:
+   * 1. Approved by property manager
+   * 2. Have accepted contracts
+   * 3. Have final rates set
+   */
   const approvedProperties = properties.filter((p: Property) => isPropertyLiveForCustomers(p));
   const users = usersData.users;
   const customerBookings = bookings.filter((b: Booking) => b.customerId === user?.id);
 
-  // Determine if property is short-term or long-term based on typical booking patterns
+  /**
+   * Property Classification
+   * 
+   * Classify properties as short-term or long-term based on rate
+   * This helps customers filter by stay type preference
+   */
   const getUnitType = (property: Property) => {
     const rate = getDisplayRate(property);
-    // Properties under $150/night are typically short-term, above are long-term
     return rate < 150 ? 'short-term' : 'long-term';
   };
 
+  /**
+   * Property Search and Filtering
+   * 
+   * Applies multiple filters:
+   * - Text search (title, address)
+   * - Guest capacity validation
+   * - Unit type (short/long-term)
+   * - Timeline (when property was added)
+   */
   const filteredProperties = approvedProperties.filter((property: Property) => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.address.toLowerCase().includes(searchTerm.toLowerCase());
@@ -100,7 +149,11 @@ const CustomerDashboard: React.FC = () => {
     return matchesSearch && matchesGuests && matchesUnitType && matchesTimeline;
   });
 
-  // Sort properties
+  /**
+   * Property Sorting Logic
+   * 
+   * Supports multiple sort criteria for better user experience
+   */
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
@@ -128,6 +181,14 @@ const CustomerDashboard: React.FC = () => {
     return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
+  /**
+   * Availability Checking
+   * 
+   * Process:
+   * 1. Get all confirmed bookings for property
+   * 2. Check if requested dates overlap with existing bookings
+   * 3. Return availability status
+   */
   const getPropertyBookings = (propertyId: string) => {
     return bookings.filter((b: Booking) => b.propertyId === propertyId && b.status === 'confirmed');
   };
@@ -171,6 +232,14 @@ const CustomerDashboard: React.FC = () => {
     return true;
   };
 
+  /**
+   * Booking Validation
+   * 
+   * Validates booking request before proceeding to checkout:
+   * 1. Ensures dates are selected
+   * 2. Validates date order (checkout after checkin)
+   * 3. Checks property availability for selected dates
+   */
   const handleBookProperty = (property: Property) => {
     if (!checkIn || !checkOut) {
       alert('Please select check-in and check-out dates');
@@ -187,7 +256,7 @@ const CustomerDashboard: React.FC = () => {
       return;
     }
 
-    // Navigate to checkout
+    // Proceed to checkout flow
     setShowCheckout(true);
   };
 
@@ -221,7 +290,12 @@ const CustomerDashboard: React.FC = () => {
     }
   };
 
-  // Handle successful booking completion
+  /**
+   * Booking Completion Handler
+   * 
+   * Called when checkout process is completed successfully.
+   * Calculates final booking details and transitions to success page.
+   */
   const handleBookingComplete = () => {
     const nights = calculateNights(checkIn, checkOut);
     const rate = selectedProperty?.finalRate || selectedProperty?.proposedRate || 0;
@@ -246,7 +320,11 @@ const CustomerDashboard: React.FC = () => {
     setSelectedProperty(null);
   };
 
-  // Show checkout page
+  /**
+   * Booking Flow Routing
+   * 
+   * Handles transitions between different stages of the booking process
+   */
   if (showCheckout && selectedProperty) {
     return (
       <CheckoutPage
@@ -260,7 +338,6 @@ const CustomerDashboard: React.FC = () => {
     );
   }
 
-  // Show success page
   if (showSuccess && completedBooking) {
     return (
       <BookingSuccessPage
@@ -385,7 +462,7 @@ const CustomerDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Sort Options */}
+        {/* Sort and Results Summary */}
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <span className="text-sm font-medium text-gray-700">Sort by:</span>
@@ -407,7 +484,7 @@ const CustomerDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* My Bookings Section */}
+      {/* Customer's Booking History */}
       {customerBookings.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="p-6 border-b border-gray-100">
@@ -459,7 +536,7 @@ const CustomerDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Properties Grid */}
+      {/* Available Properties Display */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedProperties.length === 0 ? (
           <div className="col-span-full text-center py-12">
@@ -575,12 +652,12 @@ const CustomerDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Property Details Modal */}
+      {/* Property Details Modal - Shows full property information and booking interface */}
       {selectedProperty && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              {/* X Button - Right Aligned */}
+              {/* Modal Header with Close Button */}
               <div className="flex justify-end mb-4">
                 <button
                   onClick={() => setSelectedProperty(null)}
@@ -590,7 +667,7 @@ const CustomerDashboard: React.FC = () => {
                 </button>
               </div>
 
-              {/* Image Gallery */}
+              {/* Property Image Gallery with Navigation */}
               <div className="relative mb-6">
                 <div className="relative h-96 rounded-lg overflow-hidden">
                   <img
@@ -630,7 +707,7 @@ const CustomerDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Property Details */}
+              {/* Property Information and Booking Panel */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -697,7 +774,7 @@ const CustomerDashboard: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Reviews Section */}
+                  {/* Property Reviews and Ratings */}
                   <div className="mb-6">
                     <ReviewSystem
                       propertyId={selectedProperty.id}
@@ -706,7 +783,7 @@ const CustomerDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Booking Panel */}
+                {/* Booking Interface Panel */}
                 <div className="bg-gray-50 rounded-lg p-6">
                   <div className="mb-6">
                     <div className="flex items-baseline space-x-2">
@@ -722,7 +799,7 @@ const CustomerDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Date Selection */}
+                  {/* Date Selection Interface */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <label className="block text-sm font-medium text-gray-700">
@@ -737,6 +814,7 @@ const CustomerDashboard: React.FC = () => {
                     </div>
 
                     {showCalendar ? (
+                      /* Interactive Calendar for Date Selection */
                       <BookingAvailabilityCalendar
                         propertyId={selectedProperty.id}
                         bookedDates={getBookedDatesForProperty(selectedProperty.id)}
@@ -749,6 +827,7 @@ const CustomerDashboard: React.FC = () => {
                         minNights={1}
                       />
                     ) : (
+                      /* Simple Date Input Fields */
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -780,6 +859,7 @@ const CustomerDashboard: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Guest Selection */}
                   <div className="space-y-4 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -802,6 +882,7 @@ const CustomerDashboard: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Price Calculation Display */}
                   {checkIn && checkOut && (
                     <div className="border-t pt-4 mb-6">
                       <div className="flex justify-between items-center mb-2">
@@ -822,6 +903,7 @@ const CustomerDashboard: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Booking Action Buttons */}
                   <div className="space-y-3">
                     <button
                       onClick={() => handleBookProperty(selectedProperty)}

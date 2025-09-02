@@ -4,6 +4,71 @@
 
 A comprehensive hotel booking platform built with React, TypeScript, and Tailwind CSS that supports three distinct user roles with role-based access control, property management, booking systems, and advanced features like contract management, job orders, and analytics.
 
+## 🏗️ Architecture Overview
+
+### Code Organization
+The codebase is organized into logical modules for better maintainability:
+
+```
+src/
+├── components/           # UI Components
+│   ├── layout/          # Layout components (Sidebar, Navigation)
+│   ├── common/          # Reusable UI components (Modal, StatusBadge)
+│   ├── features/        # Feature-specific components
+│   │   ├── property/    # Property-related components
+│   │   ├── booking/     # Booking-related components
+│   │   └── contract/    # Contract-related components
+│   └── [pages]/         # Page-level components (Dashboards, etc.)
+├── config/              # Configuration and constants
+│   ├── constants.ts     # Business rules, UI config, validation rules
+│   ├── routes.ts        # Route definitions and permissions
+│   └── permissions.ts   # Role-based access control
+├── services/            # Business logic and data operations
+│   ├── dataService.ts   # localStorage operations
+│   ├── authService.ts   # Authentication logic
+│   ├── propertyService.ts # Property management
+│   ├── bookingService.ts  # Booking operations
+│   └── contractService.ts # Contract management
+├── utils/               # Utility functions
+│   ├── calculations.ts  # Financial calculations
+│   ├── dateHelpers.ts   # Date operations
+│   ├── formatters.ts    # Data formatting
+│   └── validators.ts    # Input validation
+├── types/               # TypeScript type definitions
+├── hooks/               # Custom React hooks
+├── contexts/            # React Context providers
+└── data/                # Initial JSON data files
+```
+
+### Data Flow Architecture
+
+#### 1. Authentication Flow
+```
+LoginForm -> AuthService.login() -> Validate against users.json -> 
+Store in localStorage -> AuthContext updates -> App re-renders with user role
+```
+
+#### 2. Property Lifecycle
+```
+Unit Owner submits -> PropertyService.submitProperty() -> 
+Status: pending_review -> Property Manager reviews -> 
+If approved: ContractService.createContract() -> Contract sent -> 
+Owner accepts -> Property status: approved -> Live for bookings
+```
+
+#### 3. Booking Flow
+```
+Customer searches -> Filter approved properties -> Select dates -> 
+BookingService.checkAvailability() -> Checkout -> 
+BookingService.createBooking() -> Confirmation
+```
+
+#### 4. Data Persistence
+```
+Component updates -> useLocalStorage hook -> localStorage -> 
+Storage event triggered -> Other components auto-update
+```
+
 ## Architecture & Technology Stack
 
 - **Frontend**: React 18 with TypeScript
@@ -11,8 +76,28 @@ A comprehensive hotel booking platform built with React, TypeScript, and Tailwin
 - **State Management**: React Context API with localStorage persistence
 - **Icons**: Lucide React
 - **Build Tool**: Vite
-- **Data Storage**: JSON files with localStorage caching
+- **Data Storage**: JSON files with localStorage persistence and real-time sync
 
+## 🔄 Data Management System
+
+### Storage Strategy
+- **Initial Data**: Static JSON files in `/src/data/` provide seed data
+- **Runtime Storage**: localStorage maintains current state with real-time sync
+- **Cross-Component Sync**: Custom storage events ensure all components stay updated
+
+### Key Data Entities
+1. **Users** (`users.json`) - Authentication and role management
+2. **Properties** (`properties.json`) - Property listings and status
+3. **Bookings** (`bookings.json`) - Reservation records
+4. **Contracts** (`contracts.json`) - Property rental agreements
+5. **Concerns** (`concerns.json`) - Guest issue reports
+6. **Reviews** (`reviews.json`) - Property ratings and feedback
+
+### Data Flow Patterns
+- **Read**: Component -> useLocalStorage -> localStorage (with JSON fallback)
+- **Write**: Component -> useLocalStorage -> localStorage -> Storage event -> Other components update
+- **Validation**: All data changes go through service layer validation
+- **Persistence**: Changes persist across browser sessions via localStorage
 ## User Roles & Access Control
 
 ### 1. Property Manager (Admin)
@@ -127,29 +212,53 @@ A comprehensive hotel booking platform built with React, TypeScript, and Tailwin
 
 ## Technical Implementation Details
 
+### Configuration Management
+All reusable values are centralized in `/src/config/`:
+- **Business Rules**: Commission rates, fees, limits in `constants.ts`
+- **UI Configuration**: Colors, animations, styling in `constants.ts`
+- **Route Definitions**: Navigation structure in `routes.ts`
+- **Permissions**: Role-based access control in `permissions.ts`
+
 ### State Management
-- **Context API**: Centralized authentication and user state
-- **localStorage Hooks**: Persistent data storage with automatic synchronization
-- **Real-time Updates**: Immediate UI updates across components
-- **Data Validation**: Comprehensive input validation and error handling
+- **AuthContext**: Manages user authentication state globally
+- **useLocalStorage Hook**: Provides persistent storage with real-time sync
+- **Service Layer**: Handles business logic and data validation
+- **Component State**: Local UI state for forms and interactions
 
 ### Component Architecture
-- **Role-based Components**: Separate dashboards and interfaces for each user type
-- **Reusable Systems**: Modular components for reviews, concerns, and analytics
-- **Modal Management**: Consistent modal patterns for forms and details
-- **Responsive Design**: Mobile-first design with breakpoint optimization
+- **Layout Components**: Consistent navigation and page structure
+- **Common Components**: Reusable UI elements (StatusBadge, Modal, etc.)
+- **Feature Components**: Domain-specific components (PropertyCard, BookingCard)
+- **Page Components**: Complete page implementations for each route
+- **Service Integration**: Components use services for data operations
 
 ### Data Flow
-1. **Authentication**: Login → Role Detection → Dashboard Routing
-2. **Property Lifecycle**: Submission → Review → Contract → Approval → Live
-3. **Booking Process**: Search → Selection → Validation → Confirmation
-4. **Concern Resolution**: Report → Assignment → Progress → Resolution
+1. **Authentication**: Login → AuthService → Context Update → Route Access
+2. **Property Management**: Submit → PropertyService → Review → ContractService → Live
+3. **Booking Process**: Search → BookingService.checkAvailability → Create → Confirm
+4. **Real-time Updates**: Data Change → localStorage → Storage Event → Component Sync
 
 ### Security Features
-- **Role-based Access**: Strict component and data access controls
-- **Data Isolation**: Users only access their relevant data
-- **Input Sanitization**: Comprehensive form validation
-- **Session Security**: Secure session management
+- **Role-based Routing**: Routes filtered by user permissions
+- **Data Access Control**: Services enforce role-based data access
+- **Input Validation**: Comprehensive validation in utils/validators.ts
+- **Secure Authentication**: Password excluded from stored user objects
+
+## 🛠️ Development Guidelines
+
+### Adding New Features
+1. **Define Types**: Add TypeScript interfaces in `/src/types/`
+2. **Create Service**: Add business logic in `/src/services/`
+3. **Build Components**: Create reusable components in `/src/components/`
+4. **Add Routes**: Update route configuration in `/src/config/routes.ts`
+5. **Set Permissions**: Define access control in `/src/config/permissions.ts`
+
+### Code Standards
+- **Separation of Concerns**: UI components separate from business logic
+- **Type Safety**: Full TypeScript coverage with strict types
+- **Consistent Naming**: Clear, descriptive names for functions and variables
+- **Documentation**: Inline comments explaining data flow and business logic
+- **Reusability**: Common patterns extracted into reusable components
 
 ## Current System Status
 
@@ -179,6 +288,8 @@ A comprehensive hotel booking platform built with React, TypeScript, and Tailwin
 - **Reviews**: Active review system with verification
 - **Contracts**: 9 contracts (6 accepted, 2 pending, 1 rejected)
 
+## 🚀 Quick Start Guide
+
 ## Getting Started
 
 ### Prerequisites
@@ -191,6 +302,13 @@ npm install
 npm run dev
 ```
 
+### Understanding the Codebase
+1. **Start with `/src/App.tsx`** - Main routing and layout logic
+2. **Review `/src/config/`** - Business rules and configuration
+3. **Explore `/src/services/`** - Core business logic
+4. **Check `/src/components/`** - UI component structure
+5. **Study `/src/utils/`** - Helper functions and calculations
+
 ### Demo Accounts
 Use these accounts to explore different user experiences:
 
@@ -199,6 +317,28 @@ Use these accounts to explore different user experiences:
 **Unit Owner 2**: `owner2@example.com` / `owner123`
 **Customer 1**: `customer@example.com` / `customer123`
 **Customer 2**: `alice@example.com` / `customer123`
+
+## 🔧 Maintenance and Extension
+
+### Key Refactoring Improvements
+1. **Centralized Configuration**: All business rules and constants in `/src/config/`
+2. **Service Layer**: Business logic separated from UI components
+3. **Reusable Components**: Common UI patterns extracted for consistency
+4. **Type Safety**: Comprehensive TypeScript types for all data structures
+5. **Clear Data Flow**: Well-documented data movement through the system
+
+### Adding New User Roles
+1. Add role to `USER_ROLES` in `constants.ts`
+2. Define permissions in `permissions.ts`
+3. Add routes in `routes.ts`
+4. Create role-specific dashboard component
+5. Update authentication and routing logic
+
+### Extending Property Features
+1. Add new fields to `Property` type in `types/index.ts`
+2. Update validation rules in `utils/validators.ts`
+3. Modify property forms and display components
+4. Update property service methods as needed
 
 ## System Workflows
 
@@ -227,4 +367,4 @@ Use these accounts to explore different user experiences:
 5. Progress is tracked until resolution
 6. Guest confirms issue resolution
 
-This platform demonstrates a complete property management ecosystem with sophisticated workflows, real-time data management, and comprehensive user experiences for all stakeholder types.
+This platform demonstrates a complete property management ecosystem with sophisticated workflows, real-time data management, and comprehensive user experiences for all stakeholder types. The refactored architecture provides a solid foundation for future enhancements while maintaining all existing functionality.
