@@ -18,6 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
           { id: 'properties', label: 'Properties', icon: Building },
           { id: 'owners', label: 'Unit Owners', icon: Users },
           { id: 'bookings', label: 'Bookings', icon: Settings },
+          { id: 'calendar', label: 'Calendar', icon: Settings },
           { id: 'concerns', label: 'Concerns', icon: AlertTriangle },
           { id: 'jobs', label: 'Job Orders', icon: Wrench },
           { id: 'forms', label: 'Form Templates', icon: FileText },
@@ -28,6 +29,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
           { id: 'dashboard', label: 'Dashboard', icon: Home },
           { id: 'properties', label: 'My Properties', icon: Building },
           { id: 'bookings', label: 'Bookings', icon: Settings },
+          { id: 'calendar', label: 'Calendar', icon: Settings },
           { id: 'concerns', label: 'Concerns', icon: AlertTriangle },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 }
         ];

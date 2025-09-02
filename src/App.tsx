@@ -6,6 +6,7 @@ import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
 import PropertyManagerOwners from './components/PropertyManagerOwners';
 import PropertyManagerBookings from './components/PropertyManagerBookings';
+import CalendarView from './components/CalendarView';
 import UnitOwnerDashboard from './components/UnitOwnerDashboard';
 import UnitOwnerProperties from './components/UnitOwnerProperties';
 import UnitOwnerBookings from './components/UnitOwnerBookings';
@@ -37,6 +38,8 @@ const AppContent: React.FC = () => {
           return <PropertyManagerOwners />;
         case 'bookings':
           return <PropertyManagerBookings />;
+        case 'calendar':
+          return <CalendarView />;
         case 'concerns':
           return <ConcernSystem />;
         case 'jobs':
@@ -58,6 +61,8 @@ const AppContent: React.FC = () => {
           return <UnitOwnerProperties />;
         case 'bookings':
           return <UnitOwnerBookings />;
+        case 'calendar':
+          return <CalendarView />;
         case 'concerns':
           return <ConcernSystem />;
         case 'analytics':
