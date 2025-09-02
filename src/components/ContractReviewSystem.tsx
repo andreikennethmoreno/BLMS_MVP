@@ -79,6 +79,10 @@ const ContractReviewSystem: React.FC = () => {
   const handleAgreeToContract = (contractId: string) => {
     if (!user) return;
 
+    // Find the contract to get commission percentage
+    const contract = normalizedContracts.find(c => c.id === contractId);
+    if (!contract) return;
+
     const updatedContracts = normalizedContracts.map((c) =>
       c.id === contractId
         ? {
@@ -91,33 +95,50 @@ const ContractReviewSystem: React.FC = () => {
     );
     setContracts(updatedContracts);
 
-    // Find the contract and update the corresponding property status
-    const contract = normalizedContracts.find(c => c.id === contractId);
-    if (contract) {
-      // Get current properties from localStorage to ensure we have the latest data
-      const currentProperties = JSON.parse(localStorage.getItem('properties') || '[]');
-      
-      const updatedProperties = currentProperties.map((p: any) => {
-        if (p.ownerId === contract.ownerId) {
-          return {
-            ...p,
-            status: 'approved',
-            contractAcceptedAt: new Date().toISOString(),
-            contractApproved: true
-          };
-        }
-        return p;
-      });
-      
-      // Update properties in localStorage
-      localStorage.setItem('properties', JSON.stringify(updatedProperties));
-      
-      // Trigger a storage event to update other components
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'properties',
-        newValue: JSON.stringify(updatedProperties)
-      }));
-    }
+    // Get current properties from localStorage to ensure we have the latest data
+    const currentProperties = JSON.parse(localStorage.getItem('properties') || '[]');
+    
+    // Calculate the new final rate with commission percentage
+    const commissionRate = contract.commissionPercentage / 100;
+    
+    const updatedProperties = currentProperties.map((p: any) => {
+      if (p.ownerId === contract.ownerId) {
+        // Calculate new final rate: base rate + commission percentage
+        const baseRate = p.proposedRate || p.finalRate || 100;
+        const newFinalRate = Math.round(baseRate * (1 + commissionRate));
+        
+        return {
+          ...p,
+          status: 'approved',
+          finalRate: newFinalRate,
+          contractAcceptedAt: new Date().toISOString(),
+          contractApproved: true,
+          commissionPercentage: contract.commissionPercentage,
+          baseRate: baseRate
+        };
+      }
+      return p;
+    });
+    
+    // Update properties in localStorage
+    localStorage.setItem('properties', JSON.stringify(updatedProperties));
+    
+    // Update contracts with the new calculated rate
+    const updatedContractsWithRate = updatedContracts.map((c) =>
+      c.id === contractId
+        ? {
+            ...c,
+            finalCalculatedRate: Math.round((contract.fields?.find(f => f.label?.toLowerCase().includes('rate'))?.value || 100) * (1 + commissionRate))
+          }
+        : c
+    );
+    setContracts(updatedContractsWithRate);
+    
+    // Trigger a storage event to update other components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'properties',
+      newValue: JSON.stringify(updatedProperties)
+    }));
 
     setSelectedContract(null);
   };

@@ -3,6 +3,7 @@ import { CreditCard, Calendar, Users, MapPin, Shield, CheckCircle, ArrowLeft } f
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import bookingsData from '../data/bookings.json';
+import { getDisplayRate } from '../utils/propertyCalculations';
 
 interface Property {
   id: string;
@@ -52,7 +53,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   };
 
   const nights = calculateNights();
-  const rate = property.finalRate || property.proposedRate;
+  const rate = getDisplayRate(property);
   const subtotal = rate * nights;
   const serviceFee = Math.round(subtotal * 0.12); // 12% service fee
   const taxes = Math.round(subtotal * 0.08); // 8% taxes

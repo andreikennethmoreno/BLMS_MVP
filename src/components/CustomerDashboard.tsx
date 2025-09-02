@@ -9,6 +9,7 @@ import CheckoutPage from './CheckoutPage';
 import BookingSuccessPage from './BookingSuccessPage';
 import bookingsData from '../data/bookings.json';
 import usersData from '../data/users.json';
+import { isPropertyLiveForCustomers, getDisplayRate } from '../utils/propertyCalculations';
 
 interface Property {
   id: string;
@@ -44,6 +45,7 @@ interface Booking {
 const CustomerDashboard: React.FC = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useLocalStorage('bookings', bookingsData.bookings);
+  const [properties, setProperties] = useLocalStorage('properties', propertiesData.properties);
   const [searchTerm, setSearchTerm] = useState('');
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -58,18 +60,19 @@ const CustomerDashboard: React.FC = () => {
   const [unitTypeFilter, setUnitTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
 
-  const properties = propertiesData.properties.filter((p: Property) => p.status === 'approved');
+  // Use live properties data and filter for approved properties with accepted contracts
+  const approvedProperties = properties.filter((p: Property) => isPropertyLiveForCustomers(p));
   const users = usersData.users;
   const customerBookings = bookings.filter((b: Booking) => b.customerId === user?.id);
 
   // Determine if property is short-term or long-term based on typical booking patterns
   const getUnitType = (property: Property) => {
-    const rate = property.finalRate || property.proposedRate;
+    const rate = getDisplayRate(property);
     // Properties under $150/night are typically short-term, above are long-term
     return rate < 150 ? 'short-term' : 'long-term';
   };
 
-  const filteredProperties = properties.filter((property: Property) => {
+  const filteredProperties = approvedProperties.filter((property: Property) => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.address.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGuests = property.maxGuests >= guests;
@@ -413,7 +416,7 @@ const CustomerDashboard: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {customerBookings.map((booking: Booking) => {
-                const property = properties.find(
+                const property = approvedProperties.find(
                   (p: Property) => p.id === booking.propertyId
                 );
                 return (
@@ -467,7 +470,7 @@ const CustomerDashboard: React.FC = () => {
           </div>
         ) : (
           sortedProperties.map((property: Property) => {
-            const rate = property.finalRate || property.proposedRate;
+            const rate = getDisplayRate(property);
             const nights =
               checkIn && checkOut ? calculateNights(checkIn, checkOut) : 1;
             const isAvailable =
@@ -541,12 +544,12 @@ const CustomerDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-2xl font-bold text-purple-600">
-                        ${rate}
+                        ${getDisplayRate(property)}
                       </span>
                       <span className="text-gray-500 text-sm">/night</span>
                       {checkIn && checkOut && (
                         <div className="text-sm text-gray-600">
-                          Total: ${rate * nights} ({nights} nights)
+                          Total: ${getDisplayRate(property) * nights} ({nights} nights)
                         </div>
                       )}
                     </div>
@@ -708,11 +711,14 @@ const CustomerDashboard: React.FC = () => {
                   <div className="mb-6">
                     <div className="flex items-baseline space-x-2">
                       <span className="text-3xl font-bold text-purple-600">
-                        $
-                        {selectedProperty.finalRate ||
-                          selectedProperty.proposedRate}
+                        ${getDisplayRate(selectedProperty)}
                       </span>
                       <span className="text-gray-600">/ night</span>
+                      {selectedProperty.baseRate && selectedProperty.commissionPercentage && (
+                        <div className="text-sm text-gray-500">
+                          (Base: ${selectedProperty.baseRate} + {selectedProperty.commissionPercentage}%)
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -800,25 +806,17 @@ const CustomerDashboard: React.FC = () => {
                     <div className="border-t pt-4 mb-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-600">
-                          $
-                          {selectedProperty.finalRate ||
-                            selectedProperty.proposedRate}{" "}
+                          ${getDisplayRate(selectedProperty)}{" "}
                           × {calculateNights(checkIn, checkOut)} nights
                         </span>
                         <span className="text-gray-900">
-                          $
-                          {(selectedProperty.finalRate ||
-                            selectedProperty.proposedRate) *
-                            calculateNights(checkIn, checkOut)}
+                          ${getDisplayRate(selectedProperty) * calculateNights(checkIn, checkOut)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
                         <span>Total</span>
                         <span>
-                          $
-                          {(selectedProperty.finalRate ||
-                            selectedProperty.proposedRate) *
-                            calculateNights(checkIn, checkOut)}
+                          ${getDisplayRate(selectedProperty) * calculateNights(checkIn, checkOut)}
                         </span>
                       </div>
                     </div>

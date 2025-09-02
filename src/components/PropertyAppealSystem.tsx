@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { RefreshCw, Edit, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { updatePropertyWithCommission } from '../utils/propertyCalculations';
 
 interface Property {
   id: string;
@@ -49,17 +50,21 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
   const handleAppealSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Calculate updated rates with commission
+    const updatedPropertyWithRates = updatePropertyWithCommission(editedProperty, 15);
+    
     const updatedProperties = properties.map((p: Property) =>
       p.id === property.id
         ? {
             ...p,
-            ...editedProperty,
+            ...updatedPropertyWithRates,
             images: editedProperty.images.filter(img => img.trim() !== ''),
             amenities: editedProperty.amenities.filter(amenity => amenity.trim() !== ''),
             status: 'pending_review',
             submittedAt: new Date().toISOString(),
             appealCount: (property.appealCount || 0) + 1,
-            rejectionReason: undefined // Clear previous rejection reason
+            rejectionReason: undefined, // Clear previous rejection reason
+            contractApproved: false // Reset contract approval
           }
         : p
     );

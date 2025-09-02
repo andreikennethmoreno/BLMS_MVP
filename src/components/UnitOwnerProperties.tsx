@@ -167,10 +167,15 @@ const UnitOwnerProperties: React.FC = () => {
                         <div className="text-sm text-gray-500">Rate per night</div>
                         <div className="font-semibold text-emerald-600">
                           ${property.finalRate || property.proposedRate}
-                          {property.finalRate && property.finalRate !== property.proposedRate && (
+                          {property.baseRate && property.finalRate && property.baseRate !== property.finalRate && (
                             <span className="text-sm text-gray-500 line-through ml-2">
-                              ${property.proposedRate}
+                              Base: ${property.baseRate}
                             </span>
+                          )}
+                          {property.commissionPercentage && (
+                            <div className="text-xs text-gray-500">
+                              +{property.commissionPercentage}% commission
+                            </div>
                           )}
                         </div>
                       </div>

@@ -16,6 +16,7 @@ import ContractReviewSystem from "./ContractReviewSystem";
 import propertiesData from "../data/properties.json";
 import contractsData from "../data/contracts.json";
 import bookingsData from "../data/bookings.json";
+import { updatePropertyWithCommission } from '../utils/propertyCalculations';
 
 interface Property {
   id: string;
@@ -137,17 +138,20 @@ const UnitOwnerDashboard: React.FC = () => {
   const handleSubmitProperty = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Calculate rates with commission for new property
+    const propertyWithRates = updatePropertyWithCommission(newProperty, 15);
+
     const property = {
       id: `prop-${Date.now()}`,
       ownerId: user?.id || "",
-      ...newProperty,
+      ...propertyWithRates,
       images: newProperty.images.filter((img) => img.trim() !== ""),
       amenities: newProperty.amenities.filter(
         (amenity) => amenity.trim() !== ""
       ),
       status: "pending_review",
       submittedAt: new Date().toISOString(),
-      finalRate: null,
+      contractApproved: false
     };
 
     setProperties([...properties, property]);
@@ -187,6 +191,10 @@ const UnitOwnerDashboard: React.FC = () => {
   const acceptContract = (contractId: string) => {
     if (!user) return;
 
+    // Find the contract to get commission details
+    const contract = contracts.find((c: Contract) => c.id === contractId);
+    if (!contract) return;
+
     const updatedContracts = contracts.map((c: Contract) =>
       c.id === contractId
         ? { ...c, status: "accepted", acceptedAt: new Date().toISOString() }
@@ -194,21 +202,35 @@ const UnitOwnerDashboard: React.FC = () => {
     );
     setContracts(updatedContracts);
 
-    // Update property status to approved when contract is accepted
-    const contract = contracts.find((c: Contract) => c.id === contractId);
-    if (contract) {
-      const updatedProperties = properties.map((p: Property) =>
-        p.ownerId === user.id
-          ? {
-              ...p,
-              status: "approved",
-              contractAcceptedAt: new Date().toISOString(),
-              contractApproved: true
-            }
-          : p
-      );
-      setProperties(updatedProperties);
-    }
+    // Calculate final rate with commission and update property status to approved
+    const commissionRate = 0.15; // 15% commission
+    const updatedProperties = properties.map((p: Property) => {
+      if (p.ownerId === user.id && p.id === contract.propertyId) {
+        const baseRate = p.baseRate || p.proposedRate || p.finalRate || 100;
+        const newFinalRate = Math.round(baseRate * (1 + commissionRate));
+        
+        return {
+          ...p,
+          status: "approved",
+          finalRate: newFinalRate,
+          baseRate: baseRate,
+          commissionPercentage: 15,
+          contractAcceptedAt: new Date().toISOString(),
+          contractApproved: true
+        };
+      }
+      return p;
+    });
+    setProperties(updatedProperties);
+    
+    // Update localStorage to ensure persistence
+    localStorage.setItem('properties', JSON.stringify(updatedProperties));
+    
+    // Trigger storage event for real-time updates
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'properties',
+      newValue: JSON.stringify(updatedProperties)
+    }));
 
     setSelectedContract(null);
   };

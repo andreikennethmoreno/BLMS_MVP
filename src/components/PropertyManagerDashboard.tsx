@@ -57,13 +57,21 @@ const PropertyManagerDashboard: React.FC = () => {
   const confirmAction = () => {
     if (!selectedProperty || !reviewMode) return;
 
+    // Calculate commission-adjusted rate for approval
+    const commissionRate = 0.15; // 15% default commission
+    const calculatedFinalRate = reviewMode === 'approve' 
+      ? Math.round(finalRate * (1 + commissionRate))
+      : finalRate;
+
     const updatedProperties = properties.map((p: Property) => {
       if (p.id === selectedProperty.id) {
         if (reviewMode === 'approve') {
           return {
             ...p,
-            status: 'approved',
-            finalRate: finalRate,
+            status: 'pending_contract',
+            finalRate: calculatedFinalRate,
+            baseRate: finalRate,
+            commissionPercentage: 15,
             approvedAt: new Date().toISOString(),
             managerApproved: true
           };
@@ -91,15 +99,17 @@ const PropertyManagerDashboard: React.FC = () => {
         ownerName: getOwnerName(selectedProperty.ownerId),
         ownerEmail: users.find(u => u.id === selectedProperty.ownerId)?.email || '',
         templateName: 'Property Rental Contract',
-        terms: `Standard property rental agreement with 15% platform commission. Final rate: $${finalRate}/night.`,
+        terms: `Standard property rental agreement with 15% platform commission. Base rate: $${finalRate}/night, Final rate with commission: $${calculatedFinalRate}/night.`,
         commissionPercentage: 15,
         fields: [
           { id: 'property_name', label: 'Property Name', type: 'text', required: true, value: selectedProperty.title },
           { id: 'owner_name', label: 'Owner Name', type: 'text', required: true, value: getOwnerName(selectedProperty.ownerId) },
-          { id: 'rental_rate', label: 'Rental Rate (per night)', type: 'number', required: true, value: finalRate.toString() },
+          { id: 'base_rate', label: 'Base Rate (per night)', type: 'number', required: true, value: finalRate.toString() },
+          { id: 'final_rate', label: 'Final Rate with Commission (per night)', type: 'number', required: true, value: calculatedFinalRate.toString() },
           { id: 'commission_rate', label: 'Platform Commission (%)', type: 'number', required: true, value: '15' }
         ],
-        finalRate: finalRate,
+        baseRate: finalRate,
+        finalRate: calculatedFinalRate,
         status: 'sent',
         sentAt: new Date().toISOString()
       };

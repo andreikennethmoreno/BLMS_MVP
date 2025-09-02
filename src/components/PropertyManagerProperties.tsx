@@ -302,6 +302,11 @@ const PropertyManagerProperties: React.FC = () => {
                       <span>{property.bedrooms} bed • {property.bathrooms} bath</span>
                       <span className="font-medium text-blue-600">
                         ${property.finalRate || property.proposedRate}/night
+                        {property.baseRate && property.finalRate && property.baseRate !== property.finalRate && (
+                          <span className="text-xs text-gray-500 block">
+                            (Base: ${property.baseRate} + {property.commissionPercentage || 15}%)
+                          </span>
+                        )}
                       </span>
                     </div>
 

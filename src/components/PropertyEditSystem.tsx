@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Save, X, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { updatePropertyWithCommission } from '../utils/propertyCalculations';
 
 interface Property {
   id: string;
@@ -49,17 +50,20 @@ const PropertyEditSystem: React.FC<PropertyEditSystemProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Calculate updated rates with commission
+    const updatedPropertyWithRates = updatePropertyWithCommission(editedProperty, 15);
+    
     const updatedProperties = properties.map((p: Property) =>
       p.id === property.id
         ? {
             ...p,
-            ...editedProperty,
+            ...updatedPropertyWithRates,
             images: editedProperty.images.filter(img => img.trim() !== ''),
             amenities: editedProperty.amenities.filter(amenity => amenity.trim() !== ''),
             status: 'pending_review', // Reset to pending when edited
             submittedAt: new Date().toISOString(),
             rejectionReason: undefined, // Clear previous rejection reason
-            finalRate: null // Reset final rate
+            contractApproved: false // Reset contract approval
           }
         : p
     );

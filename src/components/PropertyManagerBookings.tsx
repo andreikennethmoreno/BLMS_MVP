@@ -22,12 +22,12 @@ interface Booking {
 
 const PropertyManagerBookings: React.FC = () => {
   const [bookings] = useLocalStorage('bookings', bookingsData.bookings);
+  const [properties] = useLocalStorage('properties', propertiesData.properties);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  const properties = propertiesData.properties;
   const users = usersData.users;
 
   const getProperty = (propertyId: string) => {
