@@ -62,9 +62,10 @@ const PropertyManagerDashboard: React.FC = () => {
         if (reviewMode === 'approve') {
           return {
             ...p,
-            status: 'pending_contract',
+            status: 'approved',
             finalRate: finalRate,
-            approvedAt: new Date().toISOString()
+            approvedAt: new Date().toISOString(),
+            managerApproved: true
           };
         } else {
           return {
@@ -105,15 +106,6 @@ const PropertyManagerDashboard: React.FC = () => {
       
       setContracts([...contracts, newContract]);
       setShowContractPreview(newContract);
-
-      // Update property status to show contract was sent
-      const propertiesWithContract = updatedProperties.map((p: Property) => {
-        if (p.id === selectedProperty.id) {
-          return { ...p, contractSentAt: new Date().toISOString() };
-        }
-        return p;
-      });
-      setProperties(propertiesWithContract);
     }
 
     setSelectedProperty(null);
@@ -143,7 +135,7 @@ const PropertyManagerDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Properties</p>
+              <p className="text-sm text-gray-600">Live Bookings</p>
               <p className="text-3xl font-bold text-blue-600">{approvedProperties.length}</p>
             </div>
             <Building className="w-8 h-8 text-blue-600" />

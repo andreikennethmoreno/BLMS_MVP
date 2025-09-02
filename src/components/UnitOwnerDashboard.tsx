@@ -108,7 +108,7 @@ const UnitOwnerDashboard: React.FC = () => {
       case "pending_review":
         return "Pending Review";
       case "approved":
-        return "Live & Bookable";
+        return "Live Booking";
       case "rejected":
         return "Rejected";
       case "pending_contract":
@@ -185,6 +185,8 @@ const UnitOwnerDashboard: React.FC = () => {
   };
 
   const acceptContract = (contractId: string) => {
+    if (!user) return;
+
     const updatedContracts = contracts.map((c: Contract) =>
       c.id === contractId
         ? { ...c, status: "accepted", acceptedAt: new Date().toISOString() }
@@ -192,15 +194,16 @@ const UnitOwnerDashboard: React.FC = () => {
     );
     setContracts(updatedContracts);
 
-    // Update property status to approved
+    // Update property status to approved when contract is accepted
     const contract = contracts.find((c: Contract) => c.id === contractId);
     if (contract) {
       const updatedProperties = properties.map((p: Property) =>
-        p.id === contract.propertyId
+        p.ownerId === user.id
           ? {
               ...p,
               status: "approved",
               contractAcceptedAt: new Date().toISOString(),
+              contractApproved: true
             }
           : p
       );

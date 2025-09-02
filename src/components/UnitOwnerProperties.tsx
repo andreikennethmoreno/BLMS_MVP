@@ -45,7 +45,7 @@ const UnitOwnerProperties: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending_review': return 'Pending Review';
-      case 'approved': return 'Live & Bookable';
+      case 'approved': return 'Live Booking';
       case 'rejected': return 'Rejected';
       case 'pending_contract': return 'Contract Pending';
       default: return status;
@@ -336,7 +336,7 @@ const UnitOwnerProperties: React.FC = () => {
 
                     {selectedProperty.status === 'approved' && (
                       <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                        <h5 className="font-medium text-emerald-900 mb-2">🎉 Property is Live!</h5>
+                        <h5 className="font-medium text-emerald-900 mb-2">🎉 Live Booking Status!</h5>
                         <p className="text-emerald-800 text-sm">
                           Your property is now visible to customers and available for booking.
                         </p>

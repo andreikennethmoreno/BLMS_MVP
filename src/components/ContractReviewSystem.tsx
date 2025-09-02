@@ -77,6 +77,8 @@ const ContractReviewSystem: React.FC = () => {
   const pendingContracts = userContracts.filter((c) => c.status === "sent");
 
   const handleAgreeToContract = (contractId: string) => {
+    if (!user) return;
+
     const updatedContracts = normalizedContracts.map((c) =>
       c.id === contractId
         ? {
@@ -88,6 +90,35 @@ const ContractReviewSystem: React.FC = () => {
         : c
     );
     setContracts(updatedContracts);
+
+    // Find the contract and update the corresponding property status
+    const contract = normalizedContracts.find(c => c.id === contractId);
+    if (contract) {
+      // Get current properties from localStorage to ensure we have the latest data
+      const currentProperties = JSON.parse(localStorage.getItem('properties') || '[]');
+      
+      const updatedProperties = currentProperties.map((p: any) => {
+        if (p.ownerId === contract.ownerId) {
+          return {
+            ...p,
+            status: 'approved',
+            contractAcceptedAt: new Date().toISOString(),
+            contractApproved: true
+          };
+        }
+        return p;
+      });
+      
+      // Update properties in localStorage
+      localStorage.setItem('properties', JSON.stringify(updatedProperties));
+      
+      // Trigger a storage event to update other components
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'properties',
+        newValue: JSON.stringify(updatedProperties)
+      }));
+    }
+
     setSelectedContract(null);
   };
 

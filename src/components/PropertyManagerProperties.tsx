@@ -57,7 +57,7 @@ const PropertyManagerProperties: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending_review': return 'Pending Review';
-      case 'approved': return 'Live & Bookable';
+      case 'approved': return 'Live Booking';
       case 'rejected': return 'Rejected';
       case 'pending_contract': return 'Contract Pending';
       default: return status;
