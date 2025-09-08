@@ -268,6 +268,23 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rental Type
+                    </label>
+                    <select
+                      value={editedProperty.rentalType}
+                      onChange={(e) => setEditedProperty(prev => ({ ...prev, rentalType: e.target.value as 'short-term' | 'long-term' }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="short-term">Short-term Rental</option>
+                      <option value="long-term">Long-term Rental</option>
+                    </select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Choose the intended rental duration for your property
+                    </p>
+                  </div>
                 </div>
 
                 {/* Images */}

@@ -92,6 +92,10 @@ export const validateProperty = (property: Partial<Property>): string[] => {
     errors.push(`Proposed rate cannot exceed $${BUSINESS_CONFIG.MAX_PROPERTY_RATE}`);
   }
   
+  if (property.rentalType && !['short-term', 'long-term'].includes(property.rentalType)) {
+    errors.push('Rental type must be either short-term or long-term');
+  }
+  
   return errors;
 };
 
