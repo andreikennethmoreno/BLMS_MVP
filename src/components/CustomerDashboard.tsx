@@ -33,6 +33,7 @@ import BookingSuccessPage from './BookingSuccessPage';
 import bookingsData from '../data/bookings.json';
 import usersData from '../data/users.json';
 import { isPropertyLiveForCustomers, getDisplayRate } from '../utils/propertyCalculations';
+import { validateBookingDuration } from '../utils/calculations';
 
 interface Property {
   id: string;
@@ -245,6 +246,7 @@ const CustomerDashboard: React.FC = () => {
    * 1. Ensures dates are selected
    * 2. Validates date order (checkout after checkin)
    * 3. Checks property availability for selected dates
+   * 4. Validates booking duration against property maximum stay
    */
   const handleBookProperty = (property: Property) => {
     if (!checkIn || !checkOut) {
@@ -260,6 +262,15 @@ const CustomerDashboard: React.FC = () => {
     if (!isDateRangeAvailable(property.id, checkIn, checkOut)) {
       alert('This property is not available for the selected dates');
       return;
+    }
+
+    // Validate against maximum stay if specified
+    if (property.maxStayDays) {
+      const durationValidation = validateBookingDuration(checkIn, checkOut, property.maxStayDays);
+      if (!durationValidation.isValid) {
+        alert(durationValidation.error || 'Booking duration exceeds maximum allowed stay');
+        return;
+      }
     }
 
     // Proceed to checkout flow
@@ -780,6 +791,30 @@ const CustomerDashboard: React.FC = () => {
                     </p>
                   </div>
 
+                  {/* Maximum Stay Information */}
+                  {selectedProperty.maxStayDisplay && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Stay Limits
+                      </h3>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-blue-900">Maximum Allowed Stay</p>
+                            <p className="text-blue-800">{selectedProperty.maxStayDisplay}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            selectedProperty.termClassification === 'short-term' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {selectedProperty.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Property Reviews and Ratings */}
                   <div className="mb-6">
                     <ReviewSystem
@@ -831,6 +866,8 @@ const CustomerDashboard: React.FC = () => {
                           setCheckOut(checkOutDate);
                         }}
                         minNights={1}
+                        maxStayDays={selectedProperty.maxStayDays}
+                        maxStayDisplay={selectedProperty.maxStayDisplay}
                       />
                     ) : (
                       /* Simple Date Input Fields */
@@ -930,7 +967,16 @@ const CustomerDashboard: React.FC = () => {
                             checkIn,
                             checkOut
                           )
-                          ? "Proceed to Checkout"
+                          ? (() => {
+                              // Check maximum stay validation
+                              if (selectedProperty.maxStayDays) {
+                                const durationValidation = validateBookingDuration(checkIn, checkOut, selectedProperty.maxStayDays);
+                                if (!durationValidation.isValid) {
+                                  return `Exceeds ${selectedProperty.maxStayDisplay} limit`;
+                                }
+                              }
+                              return "Proceed to Checkout";
+                            })()
                           : "Not Available for Selected Dates"
                         : "Select Dates to Book"}
                     </button>

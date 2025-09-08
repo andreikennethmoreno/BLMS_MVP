@@ -78,6 +78,10 @@ export interface Property {
   commissionPercentage?: number;
   commissionAmount?: number;
   rentalType?: 'short-term' | 'long-term'; // Owner-specified rental type
+  maxStayDays?: number; // Maximum stay length in days
+  maxStayUnit?: 'days' | 'months' | 'years'; // Unit for maximum stay
+  maxStayDisplay?: string; // Human-readable display of max stay
+  termClassification?: 'short-term' | 'long-term'; // Auto-calculated based on max stay
   status: PropertyStatus;
   submittedAt: string;
   approvedAt?: string;

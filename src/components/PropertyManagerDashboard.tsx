@@ -210,6 +210,21 @@ const PropertyManagerDashboard: React.FC = () => {
                             </span>
                           </div>
                         </div>
+                        <div>
+                          <span className="text-sm text-gray-500">Maximum Stay:</span>
+                          <p className="text-gray-900">
+                            {selectedProperty.maxStayDisplay || 'Not specified'}
+                            {selectedProperty.termClassification && (
+                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                selectedProperty.termClassification === 'short-term' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {selectedProperty.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                              </span>
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <div className="flex space-x-2 ml-4">

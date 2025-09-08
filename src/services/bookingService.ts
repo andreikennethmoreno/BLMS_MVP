@@ -110,6 +110,19 @@ class BookingService {
       throw new Error('Property is not available for the selected dates');
     }
 
+    // Validate against maximum stay if specified
+    if (property.maxStayDays) {
+      const durationValidation = validateBookingDuration(
+        bookingData.checkIn, 
+        bookingData.checkOut, 
+        property.maxStayDays
+      );
+      
+      if (!durationValidation.isValid) {
+        throw new Error(durationValidation.error || 'Booking duration exceeds maximum allowed stay');
+      }
+    }
+
     // Calculate total cost
     const nights = calculateNights(bookingData.checkIn, bookingData.checkOut);
     const rate = property.finalRate || property.proposedRate || 0;

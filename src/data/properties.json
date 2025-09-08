@@ -332,7 +332,11 @@
       "approvedAt": "2024-02-18T00:00:00Z",
       "contractSentAt": "2024-02-18T00:00:00Z",
       "contractAcceptedAt": "2024-02-19T00:00:00Z",
-      "contractApproved": true
+      "contractApproved": true,
+      "maxStayDays": 120,
+      "maxStayUnit": "months",
+      "maxStayDisplay": "4 months",
+      "termClassification": "short-term"
     }
   ]
 }

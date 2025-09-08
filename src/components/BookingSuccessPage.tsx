@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, Calendar, MapPin, Mail, Download } from 'lucide-react';
+import { calculateNights } from '../utils/calculations';
 
 interface BookingSuccessPageProps {
   booking: {
@@ -15,12 +16,7 @@ interface BookingSuccessPageProps {
 }
 
 const BookingSuccessPage: React.FC<BookingSuccessPageProps> = ({ booking, onContinue }) => {
-  const calculateNights = () => {
-    const start = new Date(booking.checkIn);
-    const end = new Date(booking.checkOut);
-    const timeDiff = end.getTime() - start.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
-  };
+  const nights = calculateNights(booking.checkIn, booking.checkOut);
 
   const downloadConfirmation = () => {
     const confirmationData = `
@@ -82,7 +78,7 @@ Thank you for your booking!
                   <div className="font-medium text-gray-900">
                     {new Date(booking.checkIn).toLocaleDateString()} - {new Date(booking.checkOut).toLocaleDateString()}
                   </div>
-                  <div className="text-gray-600">{calculateNights()} nights • {booking.guests} guests</div>
+                  <div className="text-gray-600">{nights} nights • {booking.guests} guests</div>
                 </div>
               </div>
 

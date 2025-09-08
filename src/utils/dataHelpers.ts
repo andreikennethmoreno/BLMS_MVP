@@ -8,6 +8,7 @@
 import type { Property, Booking, User, Contract, Concern, JobOrder } from '../types';
 import { USER_ROLES } from '../config/constants';
 import { getDaysAgo } from './dateHelpers';
+import { calculateTermClassification } from './calculations';
 
 /**
  * Find user by ID
@@ -116,8 +117,14 @@ export const filterPropertiesByTimeline = (properties: Property[], timeline: str
 /**
  * Determine property unit type based on rate
  * Now respects owner-specified rental type if available
+ * Updated to use maximum stay classification if available
  */
 export const getPropertyUnitType = (property: Property): 'short-term' | 'long-term' => {
+  // First priority: Use term classification based on maximum stay
+  if (property.termClassification) {
+    return property.termClassification;
+  }
+  
   // Use owner-specified rental type if available
   if (property.rentalType) {
     return property.rentalType;

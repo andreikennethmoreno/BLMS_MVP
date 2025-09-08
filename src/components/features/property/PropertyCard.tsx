@@ -212,6 +212,27 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           </div>
         )}
 
+        {/* Maximum Stay Info */}
+        {property.maxStayDisplay && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Maximum Stay</p>
+                <p className="font-medium text-gray-900">{property.maxStayDisplay}</p>
+              </div>
+              {property.termClassification && (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  property.termClassification === 'short-term' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Rejection Reason */}
         {property.status === 'rejected' && property.rejectionReason && (
           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
