@@ -8,6 +8,8 @@ interface BookingAvailabilityCalendarProps {
   selectedCheckOut: string;
   onDateSelect: (checkIn: string, checkOut: string) => void;
   minNights?: number;
+  maxStayDays?: number;
+  maxStayDisplay?: string;
 }
 
 const BookingAvailabilityCalendar: React.FC<BookingAvailabilityCalendarProps> = ({
@@ -16,7 +18,9 @@ const BookingAvailabilityCalendar: React.FC<BookingAvailabilityCalendarProps> = 
   selectedCheckIn,
   selectedCheckOut,
   onDateSelect,
-  minNights = 1
+  minNights = 1,
+  maxStayDays,
+  maxStayDisplay
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectingCheckOut, setSelectingCheckOut] = useState(false);
@@ -102,6 +106,11 @@ const BookingAvailabilityCalendar: React.FC<BookingAvailabilityCalendarProps> = 
         if (!hasBlockedDates) {
           const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
           if (nights >= minNights) {
+            // Check maximum stay limit if specified
+            if (maxStayDays && nights > maxStayDays) {
+              alert(`Maximum stay is ${maxStayDisplay || `${maxStayDays} days`}. Please select a shorter duration.`);
+              return;
+            }
             onDateSelect(selectedCheckIn, dateStr);
             setSelectingCheckOut(false);
           } else {

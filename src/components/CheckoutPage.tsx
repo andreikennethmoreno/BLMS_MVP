@@ -343,26 +343,30 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="10001"
                       />
-                      {property.maxStayDisplay && (
-                        <div className="md:col-span-2">
-                          <span className="text-sm text-gray-500">Maximum Stay</span>
-                          <div className="font-semibold text-gray-900 flex items-center space-x-2">
-                            <span>{property.maxStayDisplay}</span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              property.termClassification === 'short-term' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-blue-100 text-blue-800'
-                            }`}>
-                              {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
-                            </span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Maximum Stay Information */}
+            {property.maxStayDisplay && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-blue-900">Maximum Allowed Stay</h4>
+                    <p className="text-blue-800">{property.maxStayDisplay}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    property.termClassification === 'short-term' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Security Notice */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">

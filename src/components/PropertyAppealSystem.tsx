@@ -45,7 +45,8 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     maxGuests: property.maxGuests,
-    proposedRate: property.proposedRate
+    proposedRate: property.proposedRate,
+    rentalType: property.rentalType || 'short-term',
     maxStayValue: property.maxStayDays ? Math.round(property.maxStayDays / (property.maxStayUnit === 'years' ? 365 : property.maxStayUnit === 'months' ? 30 : 1)) : 6,
     maxStayUnit: property.maxStayUnit || 'months'
   });
@@ -218,7 +219,6 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
                       ({formatMaxStayDisplay(editedProperty.maxStayValue, editedProperty.maxStayUnit)} maximum)
                     </p>
                   </div>
-                </div>
                 <button
                   onClick={() => setShowAppealForm(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -329,6 +329,22 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rental Type
+                    </label>
+                    <select
+                      value={editedProperty.rentalType}
+                      onChange={(e) => setEditedProperty(prev => ({ ...prev, rentalType: e.target.value as 'short-term' | 'long-term' }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="short-term">Short-term Rental</option>
+                      <option value="long-term">Long-term Rental</option>
+                    </select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Choose the intended rental duration for your property
+                    </p>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Rental Type

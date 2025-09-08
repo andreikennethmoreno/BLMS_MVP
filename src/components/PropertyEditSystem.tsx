@@ -46,7 +46,7 @@ const PropertyEditSystem: React.FC<PropertyEditSystemProps> = ({
     bathrooms: property.bathrooms,
     maxGuests: property.maxGuests,
     proposedRate: property.proposedRate,
-    rentalType: property.rentalType || 'short-term'
+    rentalType: property.rentalType || 'short-term',
     maxStayValue: property.maxStayDays ? Math.round(property.maxStayDays / (property.maxStayUnit === 'years' ? 365 : property.maxStayUnit === 'months' ? 30 : 1)) : 6
     maxStayUnit: property.maxStayUnit || 'months'
   });
