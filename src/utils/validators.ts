@@ -7,6 +7,7 @@
 
 import { VALIDATION, BUSINESS_CONFIG } from '../config/constants';
 import type { Property, Booking, User } from '../types';
+import { validateBookingDuration } from './calculations';
 
 /**
  * Validate email format
@@ -96,6 +97,14 @@ export const validateProperty = (property: Partial<Property>): string[] => {
     errors.push('Rental type must be either short-term or long-term');
   }
   
+  if (property.maxStayDays && property.maxStayDays < 1) {
+    errors.push('Maximum stay must be at least 1 day');
+  }
+  
+  if (property.maxStayUnit && !['days', 'months', 'years'].includes(property.maxStayUnit)) {
+    errors.push('Maximum stay unit must be days, months, or years');
+  }
+  
   return errors;
 };
 
@@ -137,6 +146,19 @@ export const validateBooking = (booking: Partial<Booking>, property: Property): 
   
   if (booking.guests && booking.guests > BUSINESS_CONFIG.MAX_GUESTS_PER_BOOKING) {
     errors.push(`Maximum ${BUSINESS_CONFIG.MAX_GUESTS_PER_BOOKING} guests allowed per booking`);
+  }
+  
+  // Validate against property maximum stay if available
+  if (booking.checkIn && booking.checkOut && property.maxStayDays) {
+    const durationValidation = validateBookingDuration(
+      booking.checkIn, 
+      booking.checkOut, 
+      property.maxStayDays
+    );
+    
+    if (!durationValidation.isValid && durationValidation.error) {
+      errors.push(durationValidation.error);
+    }
   }
   
   return errors;

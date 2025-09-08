@@ -34,8 +34,21 @@ class PropertyService {
     // Calculate rates with commission
     const propertyWithRates = updatePropertyWithCommission(propertyData);
 
+    // Calculate maximum stay fields if provided
+    let maxStayFields = {};
+    if (propertyData.maxStayDays && propertyData.maxStayUnit) {
+      const maxStayDays = convertMaxStayToDays(propertyData.maxStayDays, propertyData.maxStayUnit);
+      maxStayFields = {
+        maxStayDays,
+        maxStayUnit: propertyData.maxStayUnit,
+        maxStayDisplay: formatMaxStayDisplay(propertyData.maxStayDays, propertyData.maxStayUnit),
+        termClassification: calculateTermClassification(maxStayDays)
+      };
+    }
+
     const newProperty: Property = {
       ...propertyWithRates,
+      ...maxStayFields,
       id: `prop-${Date.now()}`,
       status: PROPERTY_STATUS.PENDING_REVIEW,
       submittedAt: new Date().toISOString(),

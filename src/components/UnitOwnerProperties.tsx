@@ -282,6 +282,21 @@ const UnitOwnerProperties: React.FC = () => {
                         <span className="text-sm font-medium text-gray-700">Max Guests:</span>
                         <p className="text-gray-900">{selectedProperty.maxGuests}</p>
                       </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Maximum Stay:</span>
+                        <p className="text-gray-900">
+                          {selectedProperty.maxStayDisplay || 'Not specified'}
+                          {selectedProperty.termClassification && (
+                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                              selectedProperty.termClassification === 'short-term' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {selectedProperty.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                            </span>
+                          )}
+                        </p>
+                      </div>
                     </div>
 
                     <div>

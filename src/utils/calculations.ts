@@ -19,6 +19,60 @@ import { BUSINESS_CONFIG } from '../config/constants';
 import type { Property, PropertyRateCalculation, BookingCalculation } from '../types';
 
 /**
+ * Convert maximum stay to days for consistent calculations
+ */
+export const convertMaxStayToDays = (value: number, unit: 'days' | 'months' | 'years'): number => {
+  switch (unit) {
+    case 'days':
+      return value;
+    case 'months':
+      return value * 30; // Approximate days per month
+    case 'years':
+      return value * 365; // Days per year
+    default:
+      return value;
+  }
+};
+
+/**
+ * Format maximum stay for display
+ */
+export const formatMaxStayDisplay = (value: number, unit: 'days' | 'months' | 'years'): string => {
+  if (value === 1) {
+    return `1 ${unit.slice(0, -1)}`; // Remove 's' for singular
+  }
+  return `${value} ${unit}`;
+};
+
+/**
+ * Calculate term classification based on maximum stay
+ */
+export const calculateTermClassification = (maxStayDays: number): 'short-term' | 'long-term' => {
+  const oneYearInDays = 365;
+  return maxStayDays < oneYearInDays ? 'short-term' : 'long-term';
+};
+
+/**
+ * Validate booking duration against property maximum stay
+ */
+export const validateBookingDuration = (
+  checkIn: string, 
+  checkOut: string, 
+  maxStayDays: number
+): { isValid: boolean; error?: string } => {
+  const requestedNights = calculateNights(checkIn, checkOut);
+  
+  if (requestedNights > maxStayDays) {
+    return {
+      isValid: false,
+      error: `Booking duration (${requestedNights} nights) exceeds maximum allowed stay of ${maxStayDays} days`
+    };
+  }
+  
+  return { isValid: true };
+};
+
+/**
  * Calculate final rate with commission percentage
  * 
  * Process:

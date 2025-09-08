@@ -1,6 +1,9 @@
 /**
  * Utility functions for property rate calculations with commission
+ * Updated to include maximum stay calculations
  */
+
+import { convertMaxStayToDays, formatMaxStayDisplay, calculateTermClassification } from './calculations';
 
 export interface PropertyRateCalculation {
   baseRate: number;
@@ -37,8 +40,21 @@ export const updatePropertyWithCommission = (
   const baseRate = property.proposedRate || property.finalRate || 100;
   const calculation = calculateFinalRate(baseRate, commissionPercentage);
   
+  // Calculate maximum stay fields if provided
+  let maxStayFields = {};
+  if (property.maxStayValue && property.maxStayUnit) {
+    const maxStayDays = convertMaxStayToDays(property.maxStayValue, property.maxStayUnit);
+    maxStayFields = {
+      maxStayDays,
+      maxStayUnit: property.maxStayUnit,
+      maxStayDisplay: formatMaxStayDisplay(property.maxStayValue, property.maxStayUnit),
+      termClassification: calculateTermClassification(maxStayDays)
+    };
+  }
+  
   return {
     ...property,
+    ...maxStayFields,
     baseRate: calculation.baseRate,
     finalRate: calculation.finalRate,
     commissionPercentage: calculation.commissionPercentage,

@@ -235,6 +235,13 @@ const BookingAvailabilityCalendar: React.FC<BookingAvailabilityCalendarProps> = 
         {!selectedCheckIn && "Click a date to select check-in"}
         {selectedCheckIn && !selectedCheckOut && "Click a date to select check-out"}
         {selectedCheckIn && selectedCheckOut && "Click a new date to change selection"}
+        {maxStayDisplay && (
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-800 text-sm">
+              <strong>Maximum Stay:</strong> {maxStayDisplay}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

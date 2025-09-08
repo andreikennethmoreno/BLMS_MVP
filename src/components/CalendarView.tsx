@@ -8,6 +8,7 @@ import bookingsData from '../data/bookings.json';
 import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { calculateNights } from '../utils/calculations';
 
 const localizer = momentLocalizer(moment);
 
@@ -205,13 +206,6 @@ const CalendarView: React.FC = () => {
       maxGuests: 20,
       status: 'all'
     });
-  };
-
-  const calculateNights = (checkIn: string, checkOut: string) => {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const timeDiff = end.getTime() - start.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
   const getStatusColor = (status: string) => {
@@ -499,6 +493,20 @@ const CalendarView: React.FC = () => {
                         <p className="text-sm text-gray-500">
                           Owner: {selectedEvent.ownerName}
                         </p>
+                      )}
+                      {getProperty(selectedEvent.propertyId)?.maxStayDisplay && (
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-600">
+                            <strong>Max Stay:</strong> {getProperty(selectedEvent.propertyId)?.maxStayDisplay}
+                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                              getProperty(selectedEvent.propertyId)?.termClassification === 'short-term' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {getProperty(selectedEvent.propertyId)?.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                            </span>
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -17,6 +17,7 @@ import propertiesData from "../data/properties.json";
 import contractsData from "../data/contracts.json";
 import bookingsData from "../data/bookings.json";
 import { updatePropertyWithCommission } from '../utils/propertyCalculations';
+import { convertMaxStayToDays, formatMaxStayDisplay, calculateTermClassification } from '../utils/calculations';
 
 interface Property {
   id: string;
@@ -74,6 +75,8 @@ const UnitOwnerDashboard: React.FC = () => {
     maxGuests: 1,
     proposedRate: 100,
     rentalType: "short-term" as "short-term" | "long-term",
+    maxStayValue: 6,
+    maxStayUnit: "months" as "days" | "months" | "years",
   });
 
   const bookings = bookingsData.bookings;
@@ -134,11 +137,18 @@ const UnitOwnerDashboard: React.FC = () => {
       maxGuests: 1,
       proposedRate: 100,
       rentalType: "short-term" as "short-term" | "long-term",
+      maxStayValue: 6,
+      maxStayUnit: "months" as "days" | "months" | "years",
     });
   };
 
   const handleSubmitProperty = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Calculate maximum stay in days and term classification
+    const maxStayDays = convertMaxStayToDays(newProperty.maxStayValue, newProperty.maxStayUnit);
+    const maxStayDisplay = formatMaxStayDisplay(newProperty.maxStayValue, newProperty.maxStayUnit);
+    const termClassification = calculateTermClassification(maxStayDays);
 
     // Calculate rates with commission for new property
     const propertyWithRates = updatePropertyWithCommission(newProperty, 15);
@@ -147,6 +157,10 @@ const UnitOwnerDashboard: React.FC = () => {
       id: `prop-${Date.now()}`,
       ownerId: user?.id || "",
       ...propertyWithRates,
+      maxStayDays,
+      maxStayUnit: newProperty.maxStayUnit,
+      maxStayDisplay,
+      termClassification,
       images: newProperty.images.filter((img) => img.trim() !== ""),
       amenities: newProperty.amenities.filter(
         (amenity) => amenity.trim() !== ""
@@ -401,6 +415,53 @@ const UnitOwnerDashboard: React.FC = () => {
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <XCircle className="w-6 h-6" />
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Allowed Stay
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="number"
+                        min="1"
+                        value={newProperty.maxStayValue}
+                        onChange={(e) =>
+                          setNewProperty((prev) => ({
+                            ...prev,
+                            maxStayValue: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="Enter number"
+                      />
+                    </div>
+                    <div>
+                      <select
+                        value={newProperty.maxStayUnit}
+                        onChange={(e) =>
+                          setNewProperty((prev) => ({
+                            ...prev,
+                            maxStayUnit: e.target.value as "days" | "months" | "years",
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      >
+                        <option value="days">Days</option>
+                        <option value="months">Months</option>
+                        <option value="years">Years</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Maximum duration guests can stay at your property
+                  </p>
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Classification:</strong> {calculateTermClassification(convertMaxStayToDays(newProperty.maxStayValue, newProperty.maxStayUnit)) === 'short-term' ? 'Short-term' : 'Long-term'} 
+                      ({formatMaxStayDisplay(newProperty.maxStayValue, newProperty.maxStayUnit)} maximum)
+                    </p>
+                  </div>
                 </button>
               </div>
 

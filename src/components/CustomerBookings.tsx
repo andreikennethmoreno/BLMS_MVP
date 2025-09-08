@@ -5,6 +5,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import bookingsData from '../data/bookings.json';
 import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
+import { calculateNights } from '../utils/calculations';
 
 interface Booking {
   id: string;
@@ -37,13 +38,6 @@ const CustomerBookings: React.FC = () => {
 
   const getOwner = (ownerId: string) => {
     return users.find((u: any) => u.id === ownerId);
-  };
-
-  const calculateNights = (checkIn: string, checkOut: string) => {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const timeDiff = end.getTime() - start.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
   const getStatusColor = (status: string) => {
@@ -349,6 +343,20 @@ const CustomerBookings: React.FC = () => {
                       <p className="text-sm text-gray-500 mt-2">
                         Host: {getOwner(getProperty(selectedBooking.propertyId)?.ownerId)?.name}
                       </p>
+                      {getProperty(selectedBooking.propertyId)?.maxStayDisplay && (
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-600">
+                            <strong>Max Stay:</strong> {getProperty(selectedBooking.propertyId)?.maxStayDisplay}
+                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                              getProperty(selectedBooking.propertyId)?.termClassification === 'short-term' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {getProperty(selectedBooking.propertyId)?.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                            </span>
+                          </p>
+                        </div>
+                      )}
                       <div className="mt-3">
                         <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-lg text-sm font-medium ${getStatusColor(selectedBooking.status)}`}>
                           {getStatusIcon(selectedBooking.status)}

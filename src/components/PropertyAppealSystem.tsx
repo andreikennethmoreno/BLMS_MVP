@@ -3,6 +3,7 @@ import { RefreshCw, Edit, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { updatePropertyWithCommission } from '../utils/propertyCalculations';
+import { convertMaxStayToDays, formatMaxStayDisplay, calculateTermClassification } from '../utils/calculations';
 
 interface Property {
   id: string;
@@ -45,10 +46,17 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
     bathrooms: property.bathrooms,
     maxGuests: property.maxGuests,
     proposedRate: property.proposedRate
+    maxStayValue: property.maxStayDays ? Math.round(property.maxStayDays / (property.maxStayUnit === 'years' ? 365 : property.maxStayUnit === 'months' ? 30 : 1)) : 6,
+    maxStayUnit: property.maxStayUnit || 'months'
   });
 
   const handleAppealSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Calculate maximum stay in days and term classification
+    const maxStayDays = convertMaxStayToDays(editedProperty.maxStayValue, editedProperty.maxStayUnit);
+    const maxStayDisplay = formatMaxStayDisplay(editedProperty.maxStayValue, editedProperty.maxStayUnit);
+    const termClassification = calculateTermClassification(maxStayDays);
     
     // Calculate updated rates with commission
     const updatedPropertyWithRates = updatePropertyWithCommission(editedProperty, 15);
@@ -58,6 +66,10 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
         ? {
             ...p,
             ...updatedPropertyWithRates,
+            maxStayDays,
+            maxStayUnit: editedProperty.maxStayUnit,
+            maxStayDisplay,
+            termClassification,
             images: editedProperty.images.filter(img => img.trim() !== ''),
             amenities: editedProperty.amenities.filter(amenity => amenity.trim() !== ''),
             status: 'pending_review',
@@ -158,6 +170,54 @@ const PropertyAppealSystem: React.FC<PropertyAppealSystemProps> = ({
                   <p className="text-gray-600 mt-1">
                     Edit your property details to address the rejection reason and resubmit for review
                   </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Allowed Stay
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editedProperty.maxStayValue}
+                        onChange={(e) =>
+                          setEditedProperty((prev) => ({
+                            ...prev,
+                            maxStayValue: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter number"
+                      />
+                    </div>
+                    <div>
+                      <select
+                        value={editedProperty.maxStayUnit}
+                        onChange={(e) =>
+                          setEditedProperty((prev) => ({
+                            ...prev,
+                            maxStayUnit: e.target.value as "days" | "months" | "years",
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="days">Days</option>
+                        <option value="months">Months</option>
+                        <option value="years">Years</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Maximum duration guests can stay at your property
+                  </p>
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Classification:</strong> {calculateTermClassification(convertMaxStayToDays(editedProperty.maxStayValue, editedProperty.maxStayUnit)) === 'short-term' ? 'Short-term' : 'Long-term'} 
+                      ({formatMaxStayDisplay(editedProperty.maxStayValue, editedProperty.maxStayUnit)} maximum)
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowAppealForm(false)}

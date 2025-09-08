@@ -109,6 +109,27 @@ const BookingCard: React.FC<BookingCardProps> = ({
               </div>
             </div>
 
+            {/* Maximum Stay Information */}
+            {property.maxStayDisplay && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Maximum Stay</p>
+                    <p className="font-medium text-gray-900">{property.maxStayDisplay}</p>
+                  </div>
+                  {property.termClassification && (
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      property.termClassification === 'short-term' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Payment Status and Actions */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
               <div className="flex items-center space-x-2">

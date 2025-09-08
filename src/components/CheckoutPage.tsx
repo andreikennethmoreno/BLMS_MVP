@@ -343,6 +343,21 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="10001"
                       />
+                      {property.maxStayDisplay && (
+                        <div className="md:col-span-2">
+                          <span className="text-sm text-gray-500">Maximum Stay</span>
+                          <div className="font-semibold text-gray-900 flex items-center space-x-2">
+                            <span>{property.maxStayDisplay}</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              property.termClassification === 'short-term' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
