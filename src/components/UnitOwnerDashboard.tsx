@@ -73,6 +73,7 @@ const UnitOwnerDashboard: React.FC = () => {
     bathrooms: 1,
     maxGuests: 1,
     proposedRate: 100,
+    rentalType: "short-term" as "short-term" | "long-term",
   });
 
   const bookings = bookingsData.bookings;
@@ -132,6 +133,7 @@ const UnitOwnerDashboard: React.FC = () => {
       bathrooms: 1,
       maxGuests: 1,
       proposedRate: 100,
+      rentalType: "short-term" as "short-term" | "long-term",
     });
   };
 
@@ -533,6 +535,28 @@ const UnitOwnerDashboard: React.FC = () => {
                         className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rental Type
+                    </label>
+                    <select
+                      value={newProperty.rentalType}
+                      onChange={(e) =>
+                        setNewProperty((prev) => ({
+                          ...prev,
+                          rentalType: e.target.value as "short-term" | "long-term",
+                        }))
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    >
+                      <option value="short-term">Short-term Rental</option>
+                      <option value="long-term">Long-term Rental</option>
+                    </select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Choose the intended rental duration for your property
+                    </p>
                   </div>
                 </div>
 

@@ -77,6 +77,7 @@ export interface Property {
   finalRate: number | null; // Rate after commission
   commissionPercentage?: number;
   commissionAmount?: number;
+  rentalType?: 'short-term' | 'long-term'; // Owner-specified rental type
   status: PropertyStatus;
   submittedAt: string;
   approvedAt?: string;

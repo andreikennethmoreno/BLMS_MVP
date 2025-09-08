@@ -35,6 +35,12 @@ const PropertyManagerProperties: React.FC = () => {
 
   // Determine if property is short-term or long-term based on rate
   const getUnitType = (property: Property) => {
+    // Use owner-specified rental type if available
+    if (property.rentalType) {
+      return property.rentalType;
+    }
+    
+    // Fallback to rate-based classification
     const rate = property.finalRate || property.proposedRate;
     return rate < 150 ? 'short-term' : 'long-term';
   };

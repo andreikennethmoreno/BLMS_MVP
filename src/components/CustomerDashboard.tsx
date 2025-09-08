@@ -104,10 +104,16 @@ const CustomerDashboard: React.FC = () => {
   /**
    * Property Classification
    * 
-   * Classify properties as short-term or long-term based on rate
+   * Classify properties as short-term or long-term based on owner preference or rate
    * This helps customers filter by stay type preference
    */
   const getUnitType = (property: Property) => {
+    // Use owner-specified rental type if available
+    if (property.rentalType) {
+      return property.rentalType;
+    }
+    
+    // Fallback to rate-based classification
     const rate = getDisplayRate(property);
     return rate < 150 ? 'short-term' : 'long-term';
   };

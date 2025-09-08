@@ -44,7 +44,8 @@ const PropertyEditSystem: React.FC<PropertyEditSystemProps> = ({
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     maxGuests: property.maxGuests,
-    proposedRate: property.proposedRate
+    proposedRate: property.proposedRate,
+    rentalType: property.rentalType || 'short-term'
   });
 
   const handleSubmit = (e: React.FormEvent) => {

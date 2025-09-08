@@ -115,8 +115,15 @@ export const filterPropertiesByTimeline = (properties: Property[], timeline: str
 
 /**
  * Determine property unit type based on rate
+ * Now respects owner-specified rental type if available
  */
 export const getPropertyUnitType = (property: Property): 'short-term' | 'long-term' => {
+  // Use owner-specified rental type if available
+  if (property.rentalType) {
+    return property.rentalType;
+  }
+  
+  // Fallback to rate-based classification
   const rate = property.finalRate || property.proposedRate;
   return rate < 150 ? 'short-term' : 'long-term';
 };
