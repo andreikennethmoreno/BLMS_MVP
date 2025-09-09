@@ -30,22 +30,18 @@ interface OnboardingData {
     businessName: string;
     taxId: string;
     businessAddress: string;
-    yearsInBusiness: string;
   };
   // Step 4: Financial Information
   financial: {
     bankAccount: string;
     routingNumber: string;
     accountType: string;
-    monthlyIncome: string;
-    creditScore: string;
   };
   // Step 5: Property Information
   property: {
     propertyCount: string;
     propertyTypes: string[];
     totalValue: string;
-    experience: string;
   };
 }
 
@@ -72,20 +68,16 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
       businessName: '',
       taxId: '',
       businessAddress: '',
-      yearsInBusiness: ''
     },
     financial: {
       bankAccount: '',
       routingNumber: '',
       accountType: 'checking',
-      monthlyIncome: '',
-      creditScore: ''
     },
     property: {
       propertyCount: '',
       propertyTypes: [],
       totalValue: '',
-      experience: ''
     }
   });
 
@@ -122,11 +114,11 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
         const { businessAddress } = onboardingData.business;
         return !!businessAddress;
       case 4:
-        const { bankAccount, routingNumber, monthlyIncome } = onboardingData.financial;
-        return !!(bankAccount && routingNumber && monthlyIncome);
+        const { bankAccount, routingNumber } = onboardingData.financial;
+        return !!(bankAccount && routingNumber);
       case 5:
-        const { propertyCount, experience } = onboardingData.property;
-        return !!(propertyCount && experience);
+        const { propertyCount } = onboardingData.property;
+        return !!(propertyCount );
       default:
         return true;
     }
@@ -387,22 +379,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Years in Business
-                </label>
-                <select
-                  value={onboardingData.business.yearsInBusiness}
-                  onChange={(e) => updateData('business', 'yearsInBusiness', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select experience</option>
-                  <option value="new">New to business</option>
-                  <option value="1-2">1-2 years</option>
-                  <option value="3-5">3-5 years</option>
-                  <option value="5+">5+ years</option>
-                </select>
-              </div>
+              
             </div>
           </div>
         );
@@ -468,40 +445,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Monthly Income Range *
-                </label>
-                <select
-                  value={onboardingData.financial.monthlyIncome}
-                  onChange={(e) => updateData('financial', 'monthlyIncome', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select range</option>
-                  <option value="under-5k">Under $5,000</option>
-                  <option value="5k-10k">$5,000 - $10,000</option>
-                  <option value="10k-25k">$10,000 - $25,000</option>
-                  <option value="25k+">$25,000+</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Credit Score Range (Optional)
-                </label>
-                <select
-                  value={onboardingData.financial.creditScore}
-                  onChange={(e) => updateData('financial', 'creditScore', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Prefer not to say</option>
-                  <option value="poor">Poor (300-579)</option>
-                  <option value="fair">Fair (580-669)</option>
-                  <option value="good">Good (670-739)</option>
-                  <option value="very-good">Very Good (740-799)</option>
-                  <option value="excellent">Excellent (800+)</option>
-                </select>
-              </div>
+             
+              
             </div>
           </div>
         );
@@ -576,22 +521,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Property Management Experience *
-                </label>
-                <select
-                  value={onboardingData.property.experience}
-                  onChange={(e) => updateData('property', 'experience', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select experience level</option>
-                  <option value="new">New to property management</option>
-                  <option value="some">Some experience (1-3 years)</option>
-                  <option value="experienced">Experienced (3-10 years)</option>
-                  <option value="expert">Expert (10+ years)</option>
-                </select>
-              </div>
+            
             </div>
           </div>
         );
@@ -639,10 +569,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
                     <span className="text-gray-600">Business Type:</span>
                     <span className="ml-2 text-gray-900 capitalize">{onboardingData.business.businessType}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Experience:</span>
-                    <span className="ml-2 text-gray-900">{onboardingData.business.yearsInBusiness}</span>
-                  </div>
+                 
                 </div>
               </div>
 
@@ -654,10 +581,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToL
                     <span className="text-gray-600">Properties to list:</span>
                     <span className="ml-2 text-gray-900">{onboardingData.property.propertyCount}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Experience:</span>
-                    <span className="ml-2 text-gray-900">{onboardingData.property.experience}</span>
-                  </div>
+                  
                 </div>
                 {onboardingData.property.propertyTypes.length > 0 && (
                   <div className="mt-2">
