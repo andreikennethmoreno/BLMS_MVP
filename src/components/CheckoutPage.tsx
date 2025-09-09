@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { CreditCard, Calendar, Users, MapPin, Shield, CheckCircle, ArrowLeft } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import bookingsData from '../data/bookings.json';
-import { getDisplayRate } from '../utils/propertyCalculations';
-
-interface Property {
-  id: string;
-  title: string;
-  address: string;
-  images: string[];
-  finalRate: number;
-  proposedRate: number;
-}
+import React, { useState } from "react";
+import {
+  CreditCard,
+  Calendar,
+  Users,
+  MapPin,
+  Shield,
+  CheckCircle,
+  ArrowLeft,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import bookingsData from "../data/bookings.json";
+import { getDisplayRate } from "../utils/propertyCalculations";
+import { Property } from "../types";
 
 interface CheckoutPageProps {
   property: Property;
@@ -29,20 +29,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   checkOut,
   guests,
   onBack,
-  onComplete
+  onComplete,
 }) => {
   const { user } = useAuth();
-  const [bookings, setBookings] = useLocalStorage('bookings', bookingsData.bookings);
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [bookings, setBookings] = useLocalStorage(
+    "bookings",
+    bookingsData.bookings
+  );
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    nameOnCard: '',
-    billingAddress: '',
-    city: '',
-    zipCode: ''
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    nameOnCard: "",
+    billingAddress: "",
+    city: "",
+    zipCode: "",
   });
 
   const calculateNights = () => {
@@ -61,23 +64,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    
+
     // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const newBooking = {
       id: `booking-${Date.now()}`,
       propertyId: property.id,
-      customerId: user?.id || '',
+      customerId: user?.id || "",
       checkIn,
       checkOut,
       guests,
       totalAmount: total,
-      status: 'confirmed',
-      paymentStatus: 'paid',
+      status: "confirmed",
+      paymentStatus: "paid",
       bookedAt: new Date().toISOString(),
-      customerName: user?.name || '',
-      customerEmail: user?.email || ''
+      customerName: user?.name || "",
+      customerEmail: user?.email || "",
     };
 
     setBookings([...bookings, newBooking]);
@@ -86,15 +89,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   };
 
   const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
+    const match = (matches && matches[0]) || "";
     const parts = [];
     for (let i = 0, len = match.length; i < len; i += 4) {
       parts.push(match.substring(i, i + 4));
     }
     if (parts.length) {
-      return parts.join(' ');
+      return parts.join(" ");
     } else {
       return v;
     }
@@ -121,8 +124,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
           <div className="space-y-6">
             {/* Property Details */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Stay</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Your Stay
+              </h2>
+
               <div className="flex items-start space-x-4 mb-6">
                 <img
                   src={property.images[0]}
@@ -130,7 +135,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   className="w-24 h-24 rounded-lg object-cover"
                 />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{property.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {property.title}
+                  </h3>
                   <p className="text-gray-600 flex items-center mt-1">
                     <MapPin className="w-4 h-4 mr-1" />
                     {property.address}
@@ -142,41 +149,49 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div>
                   <div className="text-sm text-gray-500">Check-in</div>
                   <div className="font-semibold text-gray-900">
-                    {new Date(checkIn).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric'
+                    {new Date(checkIn).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
                     })}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Check-out</div>
                   <div className="font-semibold text-gray-900">
-                    {new Date(checkOut).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric'
+                    {new Date(checkOut).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
                     })}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Duration</div>
-                  <div className="font-semibold text-gray-900">{nights} night{nights > 1 ? 's' : ''}</div>
+                  <div className="font-semibold text-gray-900">
+                    {nights} night{nights > 1 ? "s" : ""}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Guests</div>
-                  <div className="font-semibold text-gray-900">{guests} guest{guests > 1 ? 's' : ''}</div>
+                  <div className="font-semibold text-gray-900">
+                    {guests} guest{guests > 1 ? "s" : ""}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Price Breakdown */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Price Breakdown</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Price Breakdown
+              </h2>
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">${rate} × {nights} nights</span>
+                  <span className="text-gray-600">
+                    ${rate} × {nights} nights
+                  </span>
                   <span className="text-gray-900">${subtotal}</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -189,8 +204,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 </div>
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Total</span>
-                    <span className="text-2xl font-bold text-purple-600">${total}</span>
+                    <span className="text-lg font-semibold text-gray-900">
+                      Total
+                    </span>
+                    <span className="text-2xl font-bold text-purple-600">
+                      ${total}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -198,7 +217,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
             {/* Cancellation Policy */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Cancellation Policy</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Cancellation Policy
+              </h3>
               <div className="text-sm text-gray-600 space-y-2">
                 <p>• Free cancellation until 48 hours before check-in</p>
                 <p>• 50% refund for cancellations within 48 hours</p>
@@ -210,7 +231,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
           {/* Payment Form */}
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Information</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Payment Information
+              </h2>
 
               {/* Payment Method Selection */}
               <div className="mb-6">
@@ -223,12 +246,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       type="radio"
                       name="paymentMethod"
                       value="card"
-                      checked={paymentMethod === 'card'}
+                      checked={paymentMethod === "card"}
                       onChange={(e) => setPaymentMethod(e.target.value)}
                       className="text-purple-600 focus:ring-purple-500"
                     />
                     <CreditCard className="w-5 h-5 text-gray-600" />
-                    <span className="font-medium text-gray-900">Credit/Debit Card</span>
+                    <span className="font-medium text-gray-900">
+                      Credit/Debit Card
+                    </span>
                   </label>
                   <label className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 opacity-50">
                     <input
@@ -238,14 +263,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       disabled
                       className="text-purple-600 focus:ring-purple-500"
                     />
-                    <div className="w-5 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center">P</div>
-                    <span className="font-medium text-gray-900">PayPal (Coming Soon)</span>
+                    <div className="w-5 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center">
+                      P
+                    </div>
+                    <span className="font-medium text-gray-900">
+                      PayPal (Coming Soon)
+                    </span>
                   </label>
                 </div>
               </div>
 
               {/* Card Details */}
-              {paymentMethod === 'card' && (
+              {paymentMethod === "card" && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -254,10 +283,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     <input
                       type="text"
                       value={paymentDetails.cardNumber}
-                      onChange={(e) => setPaymentDetails(prev => ({ 
-                        ...prev, 
-                        cardNumber: formatCardNumber(e.target.value) 
-                      }))}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({
+                          ...prev,
+                          cardNumber: formatCardNumber(e.target.value),
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="1234 5678 9012 3456"
                       maxLength={19}
@@ -272,7 +303,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       <input
                         type="text"
                         value={paymentDetails.expiryDate}
-                        onChange={(e) => setPaymentDetails(prev => ({ ...prev, expiryDate: e.target.value }))}
+                        onChange={(e) =>
+                          setPaymentDetails((prev) => ({
+                            ...prev,
+                            expiryDate: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="MM/YY"
                         maxLength={5}
@@ -285,7 +321,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       <input
                         type="text"
                         value={paymentDetails.cvv}
-                        onChange={(e) => setPaymentDetails(prev => ({ ...prev, cvv: e.target.value }))}
+                        onChange={(e) =>
+                          setPaymentDetails((prev) => ({
+                            ...prev,
+                            cvv: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="123"
                         maxLength={4}
@@ -300,7 +341,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     <input
                       type="text"
                       value={paymentDetails.nameOnCard}
-                      onChange={(e) => setPaymentDetails(prev => ({ ...prev, nameOnCard: e.target.value }))}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({
+                          ...prev,
+                          nameOnCard: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="John Smith"
                     />
@@ -313,7 +359,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     <input
                       type="text"
                       value={paymentDetails.billingAddress}
-                      onChange={(e) => setPaymentDetails(prev => ({ ...prev, billingAddress: e.target.value }))}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({
+                          ...prev,
+                          billingAddress: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="123 Main Street"
                     />
@@ -327,7 +378,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       <input
                         type="text"
                         value={paymentDetails.city}
-                        onChange={(e) => setPaymentDetails(prev => ({ ...prev, city: e.target.value }))}
+                        onChange={(e) =>
+                          setPaymentDetails((prev) => ({
+                            ...prev,
+                            city: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="New York"
                       />
@@ -339,7 +395,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       <input
                         type="text"
                         value={paymentDetails.zipCode}
-                        onChange={(e) => setPaymentDetails(prev => ({ ...prev, zipCode: e.target.value }))}
+                        onChange={(e) =>
+                          setPaymentDetails((prev) => ({
+                            ...prev,
+                            zipCode: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="10001"
                       />
@@ -354,15 +415,21 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-blue-900">Maximum Allowed Stay</h4>
+                    <h4 className="font-medium text-blue-900">
+                      Maximum Allowed Stay
+                    </h4>
                     <p className="text-blue-800">{property.maxStayDisplay}</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    property.termClassification === 'short-term' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      property.termClassification === "short-term"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {property.termClassification === "short-term"
+                      ? "Short-term"
+                      : "Long-term"}
                   </span>
                 </div>
               </div>
@@ -374,14 +441,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <Shield className="w-5 h-5 text-green-600 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-green-900">Secure Payment</h4>
-                  <p className="text-green-800 text-sm">Your payment information is encrypted and secure. We never store your card details.</p>
+                  <p className="text-green-800 text-sm">
+                    Your payment information is encrypted and secure. We never
+                    store your card details.
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Terms and Conditions */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Terms & Conditions</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Terms & Conditions
+              </h3>
               <div className="text-sm text-gray-600 space-y-2">
                 <label className="flex items-start space-x-3">
                   <input
@@ -390,7 +462,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
                   <span>
-                    I agree to the <a href="#" className="text-purple-600 hover:underline">Terms of Service</a> and <a href="#" className="text-purple-600 hover:underline">Privacy Policy</a>
+                    I agree to the{" "}
+                    <a href="#" className="text-purple-600 hover:underline">
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="text-purple-600 hover:underline">
+                      Privacy Policy
+                    </a>
                   </span>
                 </label>
                 <label className="flex items-start space-x-3">
@@ -400,7 +479,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
                   <span>
-                    I understand the cancellation policy and agree to the booking terms
+                    I understand the cancellation policy and agree to the
+                    booking terms
                   </span>
                 </label>
               </div>

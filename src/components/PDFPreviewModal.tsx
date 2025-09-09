@@ -28,7 +28,15 @@ import SignatureCanvas from "react-signature-canvas";
 import { PDFDocument, rgb } from "pdf-lib";
 
 // Fix 1: Better PDF.js worker configuration
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Try multiple worker sources for better compatibility
+const workerSources = [
+  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`,
+  `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`,
+  `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`,
+];
+
+// Set the first available worker source
+pdfjs.GlobalWorkerOptions.workerSrc = workerSources[0];
 
 interface PDFPreviewModalProps {
   isOpen: boolean;
@@ -88,17 +96,33 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
     setIsLoading(false);
 
     // Provide specific error messages based on error type
-    if (error.message.includes("CORS")) {
+    if (
+      error.message.includes("CORS") ||
+      error.message.includes("cross-origin")
+    ) {
       setError(
         "CORS Error: Cannot preview this PDF due to cross-origin restrictions. You can still download it."
       );
-    } else if (error.message.includes("fetch")) {
+    } else if (
+      error.message.includes("fetch") ||
+      error.message.includes("network")
+    ) {
       setError(
         "Network Error: Cannot load PDF. Please check the URL or try downloading instead."
       );
-    } else if (error.message.includes("Invalid PDF")) {
+    } else if (
+      error.message.includes("Invalid PDF") ||
+      error.message.includes("corrupted")
+    ) {
       setError(
         "Invalid PDF: The file appears to be corrupted or not a valid PDF."
+      );
+    } else if (
+      error.message.includes("worker") ||
+      error.message.includes("PDF.js")
+    ) {
+      setError(
+        "PDF.js Error: There was an issue with the PDF viewer. You can still download the PDF."
       );
     } else {
       setError(
@@ -195,7 +219,7 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
       const signatureImageBytes = await signatureResponse.arrayBuffer();
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
 
-      const { width: pageWidth, height: pageHeight } = page.getSize();
+      const { height: pageHeight } = page.getSize();
 
       const signatureX = signaturePosition.x;
       const signatureY =

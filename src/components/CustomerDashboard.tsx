@@ -1,89 +1,82 @@
 /**
  * Customer Dashboard Component
- * 
+ *
  * Main interface for customers to browse and book properties.
- * 
+ *
  * Features:
  * - Property search with filters (location, dates, guests, type, timeline)
  * - Real-time availability checking
  * - Booking flow integration (browse -> select -> checkout -> success)
  * - Personal booking history display
- * 
+ *
  * Data Flow:
  * 1. Loads approved properties from localStorage
  * 2. Filters properties based on search criteria and availability
  * 3. Handles booking flow: selection -> calendar -> checkout -> confirmation
  * 4. Updates bookings in localStorage when booking is completed
- * 
+ *
  * State Management:
  * - Properties: Read from localStorage, filtered for customer visibility
  * - Bookings: Read/write to localStorage for booking history
  * - Search filters: Local component state
  * - Booking flow: Local state for current booking process
  */
-import React, { useState } from 'react';
-import { Search, Calendar, Users, MapPin, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, X, Filter, Clock } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import ReviewSystem from './ReviewSystem';
-import propertiesData from '../data/properties.json';
-import BookingAvailabilityCalendar from './BookingAvailabilityCalendar';
-import CheckoutPage from './CheckoutPage';
-import BookingSuccessPage from './BookingSuccessPage';
-import bookingsData from '../data/bookings.json';
-import usersData from '../data/users.json';
-import { isPropertyLiveForCustomers, getDisplayRate } from '../utils/propertyCalculations';
-import { validateBookingDuration } from '../utils/calculations';
-
-interface Property {
-  id: string;
-  ownerId: string;
-  title: string;
-  description: string;
-  address: string;
-  images: string[];
-  amenities: string[];
-  bedrooms: number;
-  bathrooms: number;
-  maxGuests: number;
-  proposedRate: number;
-  finalRate: number | null;
-  status: string;
-}
-
-interface Booking {
-  id: string;
-  propertyId: string;
-  customerId: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  totalAmount: number;
-  status: string;
-  paymentStatus: string;
-  bookedAt: string;
-  customerName: string;
-  customerEmail: string;
-}
+import React, { useState } from "react";
+import {
+  Search,
+  Calendar,
+  Users,
+  MapPin,
+  Wifi,
+  Car,
+  Utensils,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Filter,
+  Clock,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import ReviewSystem from "./ReviewSystem";
+import propertiesData from "../data/properties.json";
+import BookingAvailabilityCalendar from "./BookingAvailabilityCalendar";
+import CheckoutPage from "./CheckoutPage";
+import BookingSuccessPage from "./BookingSuccessPage";
+import bookingsData from "../data/bookings.json";
+import usersData from "../data/users.json";
+import {
+  isPropertyLiveForCustomers,
+  getDisplayRate,
+} from "../utils/propertyCalculations";
+import { validateBookingDuration } from "../utils/calculations";
+import { Property, Booking } from "../types";
 
 const CustomerDashboard: React.FC = () => {
   const { user } = useAuth();
-  
+
   // Data Management: Properties and bookings with real-time sync
-  const [bookings, setBookings] = useLocalStorage('bookings', bookingsData.bookings);
-  const [properties, setProperties] = useLocalStorage('properties', propertiesData.properties);
-  
+  const [bookings] = useLocalStorage("bookings", bookingsData.bookings);
+  const [properties] = useLocalStorage("properties", propertiesData.properties);
+
+  // Cast persisted data to app types
+  const bookingsTyped = bookings as unknown as Booking[];
+  const propertiesTyped = properties as unknown as Property[];
+
   // Search and Filter State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
-  const [timelineFilter, setTimelineFilter] = useState('all');
-  const [unitTypeFilter, setUnitTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  
+  const [timelineFilter, setTimelineFilter] = useState("all");
+  const [unitTypeFilter, setUnitTypeFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+
   // Booking Flow State
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -92,19 +85,23 @@ const CustomerDashboard: React.FC = () => {
 
   /**
    * Property Filtering Logic
-   * 
+   *
    * Only show properties that are:
    * 1. Approved by property manager
    * 2. Have accepted contracts
    * 3. Have final rates set
    */
-  const approvedProperties = properties.filter((p: Property) => isPropertyLiveForCustomers(p));
+  const approvedProperties: Property[] = propertiesTyped.filter((p) =>
+    isPropertyLiveForCustomers(p)
+  ) as unknown as Property[];
   const users = usersData.users;
-  const customerBookings = bookings.filter((b: Booking) => b.customerId === user?.id);
+  const customerBookings = bookingsTyped.filter(
+    (b) => b.customerId === user?.id
+  );
 
   /**
    * Property Classification
-   * 
+   *
    * Classify properties as short-term or long-term based on owner preference or rate
    * This helps customers filter by stay type preference
    */
@@ -113,72 +110,84 @@ const CustomerDashboard: React.FC = () => {
     if (property.rentalType) {
       return property.rentalType;
     }
-    
+
     // Fallback to rate-based classification
     const rate = getDisplayRate(property);
-    return rate < 150 ? 'short-term' : 'long-term';
+    return rate < 150 ? "short-term" : "long-term";
   };
 
   /**
    * Property Search and Filtering
-   * 
+   *
    * Applies multiple filters:
    * - Text search (title, address)
    * - Guest capacity validation
    * - Unit type (short/long-term)
    * - Timeline (when property was added)
    */
-  const filteredProperties = approvedProperties.filter((property: Property) => {
-    const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.address.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredProperties = approvedProperties.filter((property) => {
+    const matchesSearch =
+      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.address.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGuests = property.maxGuests >= guests;
-    const matchesUnitType = unitTypeFilter === 'all' || getUnitType(property) === unitTypeFilter;
-    
+    const matchesUnitType =
+      unitTypeFilter === "all" || getUnitType(property) === unitTypeFilter;
+
     let matchesTimeline = true;
-    if (timelineFilter !== 'all') {
+    if (timelineFilter !== "all") {
       const submittedDate = new Date(property.submittedAt);
       const now = new Date();
-      const daysAgo = Math.floor((now.getTime() - submittedDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+      const daysAgo = Math.floor(
+        (now.getTime() - submittedDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
       switch (timelineFilter) {
-        case 'week':
+        case "week":
           matchesTimeline = daysAgo <= 7;
           break;
-        case 'month':
+        case "month":
           matchesTimeline = daysAgo <= 30;
           break;
-        case 'quarter':
+        case "quarter":
           matchesTimeline = daysAgo <= 90;
           break;
       }
     }
-    
+
     return matchesSearch && matchesGuests && matchesUnitType && matchesTimeline;
   });
 
   /**
    * Property Sorting Logic
-   * 
+   *
    * Supports multiple sort criteria for better user experience
    */
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     switch (sortBy) {
-      case 'newest':
-        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-      case 'oldest':
-        return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
-      case 'price-low':
-        return (a.finalRate || a.proposedRate) - (b.finalRate || b.proposedRate);
-      case 'price-high':
-        return (b.finalRate || b.proposedRate) - (a.finalRate || a.proposedRate);
+      case "newest":
+        return (
+          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+        );
+      case "oldest":
+        return (
+          new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime()
+        );
+      case "price-low":
+        return (
+          (a.finalRate || a.proposedRate) - (b.finalRate || b.proposedRate)
+        );
+      case "price-high":
+        return (
+          (b.finalRate || b.proposedRate) - (a.finalRate || a.proposedRate)
+        );
       default:
         return 0;
     }
   });
 
   const getOwnerName = (ownerId: string) => {
-    const owner = users.find(u => u.id === ownerId);
-    return owner?.name || 'Unknown Owner';
+    const owner = users.find((u) => u.id === ownerId);
+    return owner?.name || "Unknown Owner";
   };
 
   const calculateNights = (checkInDate: string, checkOutDate: string) => {
@@ -190,36 +199,42 @@ const CustomerDashboard: React.FC = () => {
 
   /**
    * Availability Checking
-   * 
+   *
    * Process:
    * 1. Get all confirmed bookings for property
    * 2. Check if requested dates overlap with existing bookings
    * 3. Return availability status
    */
   const getPropertyBookings = (propertyId: string) => {
-    return bookings.filter((b: Booking) => b.propertyId === propertyId && b.status === 'confirmed');
+    return bookingsTyped.filter(
+      (b) => b.propertyId === propertyId && b.status === "confirmed"
+    );
   };
 
   const getBookedDatesForProperty = (propertyId: string) => {
     const propertyBookings = getPropertyBookings(propertyId);
     const bookedDates: string[] = [];
-    
+
     propertyBookings.forEach((booking: Booking) => {
       const startDate = new Date(booking.checkIn);
       const endDate = new Date(booking.checkOut);
-      
+
       // Add all dates from check-in to check-out (exclusive of check-out)
       const currentDate = new Date(startDate);
       while (currentDate < endDate) {
-        bookedDates.push(currentDate.toISOString().split('T')[0]);
+        bookedDates.push(currentDate.toISOString().split("T")[0]);
         currentDate.setDate(currentDate.getDate() + 1);
       }
     });
-    
+
     return bookedDates;
   };
 
-  const isDateRangeAvailable = (propertyId: string, checkInDate: string, checkOutDate: string) => {
+  const isDateRangeAvailable = (
+    propertyId: string,
+    checkInDate: string,
+    checkOutDate: string
+  ) => {
     const propertyBookings = getPropertyBookings(propertyId);
     const requestStart = new Date(checkInDate);
     const requestEnd = new Date(checkOutDate);
@@ -241,7 +256,7 @@ const CustomerDashboard: React.FC = () => {
 
   /**
    * Booking Validation
-   * 
+   *
    * Validates booking request before proceeding to checkout:
    * 1. Ensures dates are selected
    * 2. Validates date order (checkout after checkin)
@@ -250,25 +265,32 @@ const CustomerDashboard: React.FC = () => {
    */
   const handleBookProperty = (property: Property) => {
     if (!checkIn || !checkOut) {
-      alert('Please select check-in and check-out dates');
+      alert("Please select check-in and check-out dates");
       return;
     }
 
     if (new Date(checkIn) >= new Date(checkOut)) {
-      alert('Check-out date must be after check-in date');
+      alert("Check-out date must be after check-in date");
       return;
     }
 
     if (!isDateRangeAvailable(property.id, checkIn, checkOut)) {
-      alert('This property is not available for the selected dates');
+      alert("This property is not available for the selected dates");
       return;
     }
 
     // Validate against maximum stay if specified
     if (property.maxStayDays) {
-      const durationValidation = validateBookingDuration(checkIn, checkOut, property.maxStayDays);
+      const durationValidation = validateBookingDuration(
+        checkIn,
+        checkOut,
+        property.maxStayDays
+      );
       if (!durationValidation.isValid) {
-        alert(durationValidation.error || 'Booking duration exceeds maximum allowed stay');
+        alert(
+          durationValidation.error ||
+            "Booking duration exceeds maximum allowed stay"
+        );
         return;
       }
     }
@@ -279,12 +301,12 @@ const CustomerDashboard: React.FC = () => {
 
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
-      case 'wifi':
+      case "wifi":
         return <Wifi className="w-4 h-4" />;
-      case 'parking':
-      case 'car':
+      case "parking":
+      case "car":
         return <Car className="w-4 h-4" />;
-      case 'kitchen':
+      case "kitchen":
         return <Utensils className="w-4 h-4" />;
       default:
         return <Star className="w-4 h-4" />;
@@ -293,7 +315,7 @@ const CustomerDashboard: React.FC = () => {
 
   const nextImage = () => {
     if (selectedProperty) {
-      setCurrentImageIndex((prev) => 
+      setCurrentImageIndex((prev) =>
         prev === selectedProperty.images.length - 1 ? 0 : prev + 1
       );
     }
@@ -301,7 +323,7 @@ const CustomerDashboard: React.FC = () => {
 
   const prevImage = () => {
     if (selectedProperty) {
-      setCurrentImageIndex((prev) => 
+      setCurrentImageIndex((prev) =>
         prev === 0 ? selectedProperty.images.length - 1 : prev - 1
       );
     }
@@ -309,13 +331,14 @@ const CustomerDashboard: React.FC = () => {
 
   /**
    * Booking Completion Handler
-   * 
+   *
    * Called when checkout process is completed successfully.
    * Calculates final booking details and transitions to success page.
    */
   const handleBookingComplete = () => {
     const nights = calculateNights(checkIn, checkOut);
-    const rate = selectedProperty?.finalRate || selectedProperty?.proposedRate || 0;
+    const rate =
+      selectedProperty?.finalRate || selectedProperty?.proposedRate || 0;
     const subtotal = rate * nights;
     const serviceFee = Math.round(subtotal * 0.12);
     const taxes = Math.round(subtotal * 0.08);
@@ -323,12 +346,12 @@ const CustomerDashboard: React.FC = () => {
 
     const bookingDetails = {
       id: `booking-${Date.now()}`,
-      propertyTitle: selectedProperty?.title || '',
-      propertyAddress: selectedProperty?.address || '',
+      propertyTitle: selectedProperty?.title || "",
+      propertyAddress: selectedProperty?.address || "",
       checkIn,
       checkOut,
       guests,
-      totalAmount: total
+      totalAmount: total,
     };
 
     setCompletedBooking(bookingDetails);
@@ -339,7 +362,7 @@ const CustomerDashboard: React.FC = () => {
 
   /**
    * Booking Flow Routing
-   * 
+   *
    * Handles transitions between different stages of the booking process
    */
   if (showCheckout && selectedProperty) {
@@ -362,8 +385,8 @@ const CustomerDashboard: React.FC = () => {
         onContinue={() => {
           setShowSuccess(false);
           setCompletedBooking(null);
-          setCheckIn('');
-          setCheckOut('');
+          setCheckIn("");
+          setCheckOut("");
           setGuests(1);
         }}
       />
@@ -494,7 +517,7 @@ const CustomerDashboard: React.FC = () => {
               <option value="price-high">Price: High to Low</option>
             </select>
           </div>
-          
+
           <div className="text-sm text-gray-600">
             {sortedProperties.length} properties found
           </div>
@@ -563,8 +586,7 @@ const CustomerDashboard: React.FC = () => {
             </p>
           </div>
         ) : (
-          sortedProperties.map((property: Property) => {
-            const rate = getDisplayRate(property);
+          sortedProperties.map((property) => {
             const nights =
               checkIn && checkOut ? calculateNights(checkIn, checkOut) : 1;
             const isAvailable =
@@ -585,12 +607,14 @@ const CustomerDashboard: React.FC = () => {
                     className="w-full h-48 object-cover"
                   />
                   <div className="absolute top-3 left-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      unitType === 'short-term' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {unitType === 'short-term' ? 'Short-term' : 'Long-term'}
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        unitType === "short-term"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {unitType === "short-term" ? "Short-term" : "Long-term"}
                     </span>
                   </div>
                   {!isAvailable && (
@@ -643,7 +667,8 @@ const CustomerDashboard: React.FC = () => {
                       <span className="text-gray-500 text-sm">/night</span>
                       {checkIn && checkOut && (
                         <div className="text-sm text-gray-600">
-                          Total: ${getDisplayRate(property) * nights} ({nights} nights)
+                          Total: ${getDisplayRate(property) * nights} ({nights}{" "}
+                          nights)
                         </div>
                       )}
                     </div>
@@ -800,15 +825,25 @@ const CustomerDashboard: React.FC = () => {
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-blue-900">Maximum Allowed Stay</p>
-                            <p className="text-blue-800">{selectedProperty.maxStayDisplay}</p>
+                            <p className="font-medium text-blue-900">
+                              Maximum Allowed Stay
+                            </p>
+                            <p className="text-blue-800">
+                              {selectedProperty.maxStayDisplay}
+                            </p>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            selectedProperty.termClassification === 'short-term' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {selectedProperty.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              selectedProperty.termClassification ===
+                              "short-term"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {selectedProperty.termClassification ===
+                            "short-term"
+                              ? "Short-term"
+                              : "Long-term"}
                           </span>
                         </div>
                       </div>
@@ -832,11 +867,13 @@ const CustomerDashboard: React.FC = () => {
                         ${getDisplayRate(selectedProperty)}
                       </span>
                       <span className="text-gray-600">/ night</span>
-                      {selectedProperty.baseRate && selectedProperty.commissionPercentage && (
-                        <div className="text-sm text-gray-500">
-                          (Base: ${selectedProperty.baseRate} + {selectedProperty.commissionPercentage}%)
-                        </div>
-                      )}
+                      {selectedProperty.baseRate &&
+                        selectedProperty.commissionPercentage && (
+                          <div className="text-sm text-gray-500">
+                            (Base: ${selectedProperty.baseRate} +{" "}
+                            {selectedProperty.commissionPercentage}%)
+                          </div>
+                        )}
                     </div>
                   </div>
 
@@ -850,7 +887,7 @@ const CustomerDashboard: React.FC = () => {
                         onClick={() => setShowCalendar(!showCalendar)}
                         className="text-purple-600 hover:text-purple-700 text-sm font-medium"
                       >
-                        {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+                        {showCalendar ? "Hide Calendar" : "Show Calendar"}
                       </button>
                     </div>
 
@@ -858,7 +895,9 @@ const CustomerDashboard: React.FC = () => {
                       /* Interactive Calendar for Date Selection */
                       <BookingAvailabilityCalendar
                         propertyId={selectedProperty.id}
-                        bookedDates={getBookedDatesForProperty(selectedProperty.id)}
+                        bookedDates={getBookedDatesForProperty(
+                          selectedProperty.id
+                        )}
                         selectedCheckIn={checkIn}
                         selectedCheckOut={checkOut}
                         onDateSelect={(checkInDate, checkOutDate) => {
@@ -930,17 +969,21 @@ const CustomerDashboard: React.FC = () => {
                     <div className="border-t pt-4 mb-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-600">
-                          ${getDisplayRate(selectedProperty)}{" "}
-                          × {calculateNights(checkIn, checkOut)} nights
+                          ${getDisplayRate(selectedProperty)} ×{" "}
+                          {calculateNights(checkIn, checkOut)} nights
                         </span>
                         <span className="text-gray-900">
-                          ${getDisplayRate(selectedProperty) * calculateNights(checkIn, checkOut)}
+                          $
+                          {getDisplayRate(selectedProperty) *
+                            calculateNights(checkIn, checkOut)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
                         <span>Total</span>
                         <span>
-                          ${getDisplayRate(selectedProperty) * calculateNights(checkIn, checkOut)}
+                          $
+                          {getDisplayRate(selectedProperty) *
+                            calculateNights(checkIn, checkOut)}
                         </span>
                       </div>
                     </div>
@@ -970,7 +1013,12 @@ const CustomerDashboard: React.FC = () => {
                           ? (() => {
                               // Check maximum stay validation
                               if (selectedProperty.maxStayDays) {
-                                const durationValidation = validateBookingDuration(checkIn, checkOut, selectedProperty.maxStayDays);
+                                const durationValidation =
+                                  validateBookingDuration(
+                                    checkIn,
+                                    checkOut,
+                                    selectedProperty.maxStayDays
+                                  );
                                 if (!durationValidation.isValid) {
                                   return `Exceeds ${selectedProperty.maxStayDisplay} limit`;
                                 }

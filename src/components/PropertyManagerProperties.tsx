@@ -1,29 +1,15 @@
 import React, { useState } from 'react';
-import { Building, Search, Filter, CheckCircle, XCircle, Clock, Eye, Edit, Trash2, Calendar } from 'lucide-react';
+import { Building, Search, Filter, XCircle, Eye, Calendar } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
-
-interface Property {
-  id: string;
-  ownerId: string;
-  title: string;
-  description: string;
-  address: string;
-  images: string[];
-  amenities: string[];
-  bedrooms: number;
-  bathrooms: number;
-  maxGuests: number;
-  proposedRate: number;
-  finalRate: number | null;
-  status: string;
-  submittedAt: string;
-  rejectionReason?: string;
-}
+import { Property } from '../types';
 
 const PropertyManagerProperties: React.FC = () => {
-  const [properties] = useLocalStorage('properties', propertiesData.properties);
+  const [properties] = useLocalStorage<Property[]>(
+    'properties',
+    propertiesData.properties as Property[]
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [unitTypeFilter, setUnitTypeFilter] = useState('all');
@@ -117,10 +103,10 @@ const PropertyManagerProperties: React.FC = () => {
 
   const statusCounts = {
     all: properties.length,
-    pending_review: properties.filter((p: Property) => p.status === 'pending_review').length,
-    approved: properties.filter((p: Property) => p.status === 'approved').length,
-    rejected: properties.filter((p: Property) => p.status === 'rejected').length,
-    pending_contract: properties.filter((p: Property) => p.status === 'pending_contract').length,
+    pending_review: properties.filter((p) => p.status === 'pending_review').length,
+    approved: properties.filter((p) => p.status === 'approved').length,
+    rejected: properties.filter((p) => p.status === 'rejected').length,
+    pending_contract: properties.filter((p) => p.status === 'pending_contract').length,
   };
 
   return (

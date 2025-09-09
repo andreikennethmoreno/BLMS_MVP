@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Eye,
   PenTool,
+  X,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -80,7 +81,7 @@ const ContractReviewSystem: React.FC = () => {
     if (!user) return;
 
     // Find the contract to get commission percentage
-    const contract = normalizedContracts.find(c => c.id === contractId);
+    const contract = normalizedContracts.find((c) => c.id === contractId);
     if (!contract) return;
 
     const updatedContracts = normalizedContracts.map((c) =>
@@ -96,49 +97,58 @@ const ContractReviewSystem: React.FC = () => {
     setContracts(updatedContracts);
 
     // Get current properties from localStorage to ensure we have the latest data
-    const currentProperties = JSON.parse(localStorage.getItem('properties') || '[]');
-    
+    const currentProperties = JSON.parse(
+      localStorage.getItem("properties") || "[]"
+    );
+
     // Calculate the new final rate with commission percentage
     const commissionRate = contract.commissionPercentage / 100;
-    
+
     const updatedProperties = currentProperties.map((p: any) => {
       if (p.ownerId === contract.ownerId) {
         // Calculate new final rate: base rate + commission percentage
         const baseRate = p.proposedRate || p.finalRate || 100;
         const newFinalRate = Math.round(baseRate * (1 + commissionRate));
-        
+
         return {
           ...p,
-          status: 'approved',
+          status: "approved",
           finalRate: newFinalRate,
           contractAcceptedAt: new Date().toISOString(),
           contractApproved: true,
           commissionPercentage: contract.commissionPercentage,
-          baseRate: baseRate
+          baseRate: baseRate,
         };
       }
       return p;
     });
-    
+
     // Update properties in localStorage
-    localStorage.setItem('properties', JSON.stringify(updatedProperties));
-    
+    localStorage.setItem("properties", JSON.stringify(updatedProperties));
+
     // Update contracts with the new calculated rate
     const updatedContractsWithRate = updatedContracts.map((c) =>
       c.id === contractId
         ? {
             ...c,
-            finalCalculatedRate: Math.round((contract.fields?.find(f => f.label?.toLowerCase().includes('rate'))?.value || 100) * (1 + commissionRate))
+            finalCalculatedRate: Math.round(
+              (contract.fields?.find((f) =>
+                f.label?.toLowerCase().includes("rate")
+              )?.value || 100) *
+                (1 + commissionRate)
+            ),
           }
         : c
     );
     setContracts(updatedContractsWithRate);
-    
+
     // Trigger a storage event to update other components
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'properties',
-      newValue: JSON.stringify(updatedProperties)
-    }));
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "properties",
+        newValue: JSON.stringify(updatedProperties),
+      })
+    );
 
     setSelectedContract(null);
   };
@@ -166,12 +176,15 @@ const ContractReviewSystem: React.FC = () => {
     setDisagreementReason("");
   };
 
-  const handleSignatureComplete = (contractId: string, signedPdfBlob: Blob) => {
+  const handleSignatureComplete = (
+    contractId: string,
+    _signedPdfBlob: Blob
+  ) => {
     // In a real application, you would upload the signed PDF to your server
     // For demo purposes, we'll automatically agree to the contract
     handleAgreeToContract(contractId);
     setShowPDFViewer(null);
-    alert('Contract signed and submitted successfully!');
+    alert("Contract signed and submitted successfully!");
   };
 
   const getStatusColor = (status: string) => {
@@ -222,7 +235,9 @@ const ContractReviewSystem: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-900">Contract PDF Preview</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900">
+                    Contract PDF Preview
+                  </h3>
                   <p className="text-gray-600">{showPDFViewer.templateName}</p>
                 </div>
                 <button
@@ -236,20 +251,25 @@ const ContractReviewSystem: React.FC = () => {
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <PenTool className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-blue-900">Digital Signature Required</span>
+                  <span className="font-medium text-blue-900">
+                    Digital Signature Required
+                  </span>
                 </div>
                 <p className="text-blue-800 text-sm mt-1">
-                  You can view the contract and add your digital signature directly on the PDF.
+                  You can view the contract and add your digital signature
+                  directly on the PDF.
                 </p>
               </div>
 
-              <ContractPDFViewer
-                contract={showPDFViewer}
-                showSignatureOption={true}
-                onSignatureComplete={(signedPdfBlob) => 
-                  handleSignatureComplete(showPDFViewer.id, signedPdfBlob)
-                }
-              />
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <ContractPDFViewer
+                  contract={showPDFViewer}
+                  showSignatureOption={true}
+                  onSignatureComplete={(signedPdfBlob) =>
+                    handleSignatureComplete(showPDFViewer.id, signedPdfBlob)
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>

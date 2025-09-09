@@ -14,7 +14,7 @@ import React from 'react';
 import { DivideIcon as LucideIcon } from 'lucide-react';
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon: typeof LucideIcon;
   title: string;
   description?: string;
   actionButton?: {

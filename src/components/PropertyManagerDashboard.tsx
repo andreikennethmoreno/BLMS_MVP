@@ -1,57 +1,69 @@
-import React, { useState } from 'react';
-import { Building, Users, CheckCircle, Clock, XCircle, DollarSign, FileText, Eye } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import ContractPDFViewer from './ContractPDFViewer';
-import propertiesData from '../data/properties.json';
-import usersData from '../data/users.json';
-import bookingsData from '../data/bookings.json';
-import contractsData from '../data/contracts.json';
-
-interface Property {
-  id: string;
-  ownerId: string;
-  title: string;
-  description: string;
-  address: string;
-  images: string[];
-  amenities: string[];
-  bedrooms: number;
-  bathrooms: number;
-  maxGuests: number;
-  proposedRate: number;
-  finalRate: number | null;
-  status: string;
-  submittedAt: string;
-  rejectionReason?: string;
-}
+import React, { useState } from "react";
+import {
+  Building,
+  Users,
+  CheckCircle,
+  Clock,
+  XCircle,
+  DollarSign,
+  Eye,
+} from "lucide-react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import ContractPDFViewer from "./ContractPDFViewer";
+import { Property } from "../types";
+import { PROPERTY_STATUS } from "../config/constants";
+import propertiesData from "../data/properties.json";
+import usersData from "../data/users.json";
+import bookingsData from "../data/bookings.json";
+import contractsData from "../data/contracts.json";
 
 const PropertyManagerDashboard: React.FC = () => {
-  const [properties, setProperties] = useLocalStorage('properties', propertiesData.properties);
-  const [contracts, setContracts] = useLocalStorage('contracts', contractsData.contracts);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [reviewMode, setReviewMode] = useState<'approve' | 'reject' | null>(null);
+  const [properties, setProperties] = useLocalStorage(
+    "properties",
+    propertiesData.properties as Property[]
+  );
+  const [contracts, setContracts] = useLocalStorage(
+    "contracts",
+    contractsData.contracts
+  );
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  );
+  const [reviewMode, setReviewMode] = useState<"approve" | "reject" | null>(
+    null
+  );
   const [finalRate, setFinalRate] = useState<number>(0);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
   const [showContractPreview, setShowContractPreview] = useState<any>(null);
 
   const users = usersData.users;
   const bookings = bookingsData.bookings;
 
-  const pendingProperties = properties.filter((p: Property) => p.status === 'pending_review');
-  const approvedProperties = properties.filter((p: Property) => p.status === 'approved');
+  const pendingProperties = properties.filter(
+    (p: Property) => p.status === PROPERTY_STATUS.PENDING_REVIEW
+  );
+  const approvedProperties = properties.filter(
+    (p: Property) => p.status === PROPERTY_STATUS.APPROVED
+  );
   const totalBookings = bookings.length;
-  const totalRevenue = bookings.reduce((sum, booking) => sum + booking.totalAmount, 0);
+  const totalRevenue = bookings.reduce(
+    (sum, booking) => sum + booking.totalAmount,
+    0
+  );
 
   const getOwnerName = (ownerId: string) => {
-    const owner = users.find(u => u.id === ownerId);
-    return owner?.name || 'Unknown Owner';
+    const owner = users.find((u) => u.id === ownerId);
+    return owner?.name || "Unknown Owner";
   };
 
-  const handlePropertyAction = (property: Property, action: 'approve' | 'reject') => {
+  const handlePropertyAction = (
+    property: Property,
+    action: "approve" | "reject"
+  ) => {
     setSelectedProperty(property);
     setReviewMode(action);
     setFinalRate(property.proposedRate);
-    setRejectionReason('');
+    setRejectionReason("");
   };
 
   const confirmAction = () => {
@@ -59,28 +71,29 @@ const PropertyManagerDashboard: React.FC = () => {
 
     // Calculate commission-adjusted rate for approval
     const commissionRate = 0.15; // 15% default commission
-    const calculatedFinalRate = reviewMode === 'approve' 
-      ? Math.round(finalRate * (1 + commissionRate))
-      : finalRate;
+    const calculatedFinalRate =
+      reviewMode === "approve"
+        ? Math.round(finalRate * (1 + commissionRate))
+        : finalRate;
 
     const updatedProperties = properties.map((p: Property) => {
       if (p.id === selectedProperty.id) {
-        if (reviewMode === 'approve') {
+        if (reviewMode === "approve") {
           return {
             ...p,
-            status: 'pending_contract',
+            status: PROPERTY_STATUS.PENDING_CONTRACT,
             finalRate: calculatedFinalRate,
             baseRate: finalRate,
             commissionPercentage: 15,
             approvedAt: new Date().toISOString(),
-            managerApproved: true
+            managerApproved: true,
           };
         } else {
           return {
             ...p,
-            status: 'rejected',
+            status: PROPERTY_STATUS.REJECTED,
             rejectedAt: new Date().toISOString(),
-            rejectionReason: rejectionReason
+            rejectionReason: rejectionReason,
           };
         }
       }
@@ -89,31 +102,62 @@ const PropertyManagerDashboard: React.FC = () => {
 
     setProperties(updatedProperties);
 
-    if (reviewMode === 'approve') {
+    if (reviewMode === "approve") {
       // Send contract
       const newContract = {
         id: `contract-${Date.now()}`,
-        templateId: 'template-1', // Default template
+        templateId: "template-1", // Default template
         propertyId: selectedProperty.id,
         ownerId: selectedProperty.ownerId,
         ownerName: getOwnerName(selectedProperty.ownerId),
-        ownerEmail: users.find(u => u.id === selectedProperty.ownerId)?.email || '',
-        templateName: 'Property Rental Contract',
+        ownerEmail:
+          users.find((u) => u.id === selectedProperty.ownerId)?.email || "",
+        templateName: "Property Rental Contract",
         terms: `Standard property rental agreement with 15% platform commission. Base rate: $${finalRate}/night, Final rate with commission: $${calculatedFinalRate}/night.`,
         commissionPercentage: 15,
         fields: [
-          { id: 'property_name', label: 'Property Name', type: 'text', required: true, value: selectedProperty.title },
-          { id: 'owner_name', label: 'Owner Name', type: 'text', required: true, value: getOwnerName(selectedProperty.ownerId) },
-          { id: 'base_rate', label: 'Base Rate (per night)', type: 'number', required: true, value: finalRate.toString() },
-          { id: 'final_rate', label: 'Final Rate with Commission (per night)', type: 'number', required: true, value: calculatedFinalRate.toString() },
-          { id: 'commission_rate', label: 'Platform Commission (%)', type: 'number', required: true, value: '15' }
+          {
+            id: "property_name",
+            label: "Property Name",
+            type: "text",
+            required: true,
+            value: selectedProperty.title,
+          },
+          {
+            id: "owner_name",
+            label: "Owner Name",
+            type: "text",
+            required: true,
+            value: getOwnerName(selectedProperty.ownerId),
+          },
+          {
+            id: "base_rate",
+            label: "Base Rate (per night)",
+            type: "number",
+            required: true,
+            value: finalRate.toString(),
+          },
+          {
+            id: "final_rate",
+            label: "Final Rate with Commission (per night)",
+            type: "number",
+            required: true,
+            value: calculatedFinalRate.toString(),
+          },
+          {
+            id: "commission_rate",
+            label: "Platform Commission (%)",
+            type: "number",
+            required: true,
+            value: "15",
+          },
         ],
         baseRate: finalRate,
         finalRate: calculatedFinalRate,
-        status: 'sent',
-        sentAt: new Date().toISOString()
+        status: "sent",
+        sentAt: new Date().toISOString(),
       };
-      
+
       setContracts([...contracts, newContract]);
       setShowContractPreview(newContract);
     }
@@ -126,8 +170,12 @@ const PropertyManagerDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Property Manager Dashboard</h1>
-        <p className="text-gray-600 mt-2">Manage properties, owners, and bookings</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Property Manager Dashboard
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Manage properties, owners, and bookings
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -136,7 +184,9 @@ const PropertyManagerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending Reviews</p>
-              <p className="text-3xl font-bold text-orange-600">{pendingProperties.length}</p>
+              <p className="text-3xl font-bold text-orange-600">
+                {pendingProperties.length}
+              </p>
             </div>
             <Clock className="w-8 h-8 text-orange-600" />
           </div>
@@ -146,7 +196,9 @@ const PropertyManagerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Live Bookings</p>
-              <p className="text-3xl font-bold text-blue-600">{approvedProperties.length}</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {approvedProperties.length}
+              </p>
             </div>
             <Building className="w-8 h-8 text-blue-600" />
           </div>
@@ -156,7 +208,9 @@ const PropertyManagerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Bookings</p>
-              <p className="text-3xl font-bold text-emerald-600">{totalBookings}</p>
+              <p className="text-3xl font-bold text-emerald-600">
+                {totalBookings}
+              </p>
             </div>
             <Users className="w-8 h-8 text-emerald-600" />
           </div>
@@ -166,7 +220,9 @@ const PropertyManagerDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-purple-600">${totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-purple-600">
+                ${totalRevenue.toLocaleString()}
+              </p>
             </div>
             <DollarSign className="w-8 h-8 text-purple-600" />
           </div>
@@ -184,11 +240,16 @@ const PropertyManagerDashboard: React.FC = () => {
 
         <div className="p-6">
           {pendingProperties.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No properties pending review</p>
+            <p className="text-gray-500 text-center py-8">
+              No properties pending review
+            </p>
           ) : (
             <div className="space-y-4">
               {pendingProperties.map((property: Property) => (
-                <div key={property.id} className="border border-gray-200 rounded-lg p-4">
+                <div
+                  key={property.id}
+                  className="border border-gray-200 rounded-lg p-4"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4">
@@ -198,9 +259,13 @@ const PropertyManagerDashboard: React.FC = () => {
                           className="w-20 h-20 rounded-lg object-cover"
                         />
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{property.title}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {property.title}
+                          </h3>
                           <p className="text-gray-600">{property.address}</p>
-                          <p className="text-sm text-gray-500">Owner: {getOwnerName(property.ownerId)}</p>
+                          <p className="text-sm text-gray-500">
+                            Owner: {getOwnerName(property.ownerId)}
+                          </p>
                           <div className="flex items-center space-x-4 mt-2">
                             <span className="text-sm text-gray-600">
                               {property.bedrooms} bed, {property.bathrooms} bath
@@ -211,16 +276,25 @@ const PropertyManagerDashboard: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Maximum Stay:</span>
+                          <span className="text-sm text-gray-500">
+                            Maximum Stay:
+                          </span>
                           <p className="text-gray-900">
-                            {selectedProperty.maxStayDisplay || 'Not specified'}
-                            {selectedProperty.termClassification && (
-                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                                selectedProperty.termClassification === 'short-term' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {selectedProperty.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                            {selectedProperty?.maxStayDisplay ||
+                              "Not specified"}
+                            {selectedProperty?.termClassification && (
+                              <span
+                                className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                  selectedProperty.termClassification ===
+                                  "short-term"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {selectedProperty.termClassification ===
+                                "short-term"
+                                  ? "Short-term"
+                                  : "Long-term"}
                               </span>
                             )}
                           </p>
@@ -229,14 +303,16 @@ const PropertyManagerDashboard: React.FC = () => {
                     </div>
                     <div className="flex space-x-2 ml-4">
                       <button
-                        onClick={() => handlePropertyAction(property, 'approve')}
+                        onClick={() =>
+                          handlePropertyAction(property, "approve")
+                        }
                         className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
                       >
                         <CheckCircle className="w-4 h-4" />
                         <span>Approve</span>
                       </button>
                       <button
-                        onClick={() => handlePropertyAction(property, 'reject')}
+                        onClick={() => handlePropertyAction(property, "reject")}
                         className="flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
                       >
                         <XCircle className="w-4 h-4" />
@@ -263,22 +339,28 @@ const PropertyManagerDashboard: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-md w-full p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              {reviewMode === 'approve' ? 'Approve Property' : 'Reject Property'}
+              {reviewMode === "approve"
+                ? "Approve Property"
+                : "Reject Property"}
             </h3>
-            
+
             <div className="mb-4">
-              <h4 className="font-medium text-gray-900">{selectedProperty.title}</h4>
+              <h4 className="font-medium text-gray-900">
+                {selectedProperty.title}
+              </h4>
               <p className="text-gray-600">{selectedProperty.address}</p>
             </div>
 
-            {reviewMode === 'approve' ? (
+            {reviewMode === "approve" ? (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Final Room Rate (per night)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-3 text-gray-500">$</span>
+                    <span className="absolute left-3 top-3 text-gray-500">
+                      $
+                    </span>
                     <input
                       type="number"
                       value={finalRate}
@@ -318,14 +400,16 @@ const PropertyManagerDashboard: React.FC = () => {
               </button>
               <button
                 onClick={confirmAction}
-                disabled={reviewMode === 'reject' && !rejectionReason.trim()}
+                disabled={reviewMode === "reject" && !rejectionReason.trim()}
                 className={`flex-1 text-white px-4 py-2 rounded-lg transition-colors ${
-                  reviewMode === 'approve'
-                    ? 'bg-emerald-600 hover:bg-emerald-700'
-                    : 'bg-red-600 hover:bg-red-700'
+                  reviewMode === "approve"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {reviewMode === 'approve' ? 'Approve & Send Contract' : 'Reject Property'}
+                {reviewMode === "approve"
+                  ? "Approve & Send Contract"
+                  : "Reject Property"}
               </button>
             </div>
           </div>
@@ -339,8 +423,13 @@ const PropertyManagerDashboard: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-900">Contract Sent Successfully</h3>
-                  <p className="text-gray-600">Preview of the contract sent to {showContractPreview.ownerName}</p>
+                  <h3 className="text-2xl font-semibold text-gray-900">
+                    Contract Sent Successfully
+                  </h3>
+                  <p className="text-gray-600">
+                    Preview of the contract sent to{" "}
+                    {showContractPreview.ownerName}
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowContractPreview(null)}
@@ -353,10 +442,13 @@ const PropertyManagerDashboard: React.FC = () => {
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-green-900">Contract Sent</span>
+                  <span className="font-medium text-green-900">
+                    Contract Sent
+                  </span>
                 </div>
                 <p className="text-green-800 text-sm mt-1">
-                  The contract has been sent to {showContractPreview.ownerName} for review and signature.
+                  The contract has been sent to {showContractPreview.ownerName}{" "}
+                  for review and signature.
                 </p>
               </div>
 
@@ -375,7 +467,9 @@ const PropertyManagerDashboard: React.FC = () => {
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-2xl font-semibold text-gray-900">{selectedProperty.title}</h3>
+                <h3 className="text-2xl font-semibold text-gray-900">
+                  {selectedProperty.title}
+                </h3>
                 <button
                   onClick={() => setSelectedProperty(null)}
                   className="text-gray-400 hover:text-gray-600"
@@ -398,7 +492,9 @@ const PropertyManagerDashboard: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-gray-900">Description</h4>
-                  <p className="text-gray-600 mt-1">{selectedProperty.description}</p>
+                  <p className="text-gray-600 mt-1">
+                    {selectedProperty.description}
+                  </p>
                 </div>
 
                 <div>
@@ -406,19 +502,29 @@ const PropertyManagerDashboard: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     <div>
                       <span className="text-sm text-gray-500">Bedrooms:</span>
-                      <span className="ml-2 text-gray-900">{selectedProperty.bedrooms}</span>
+                      <span className="ml-2 text-gray-900">
+                        {selectedProperty.bedrooms}
+                      </span>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Bathrooms:</span>
-                      <span className="ml-2 text-gray-900">{selectedProperty.bathrooms}</span>
+                      <span className="ml-2 text-gray-900">
+                        {selectedProperty.bathrooms}
+                      </span>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Max Guests:</span>
-                      <span className="ml-2 text-gray-900">{selectedProperty.maxGuests}</span>
+                      <span className="ml-2 text-gray-900">
+                        {selectedProperty.maxGuests}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Proposed Rate:</span>
-                      <span className="ml-2 text-gray-900">${selectedProperty.proposedRate}/night</span>
+                      <span className="text-sm text-gray-500">
+                        Proposed Rate:
+                      </span>
+                      <span className="ml-2 text-gray-900">
+                        ${selectedProperty.proposedRate}/night
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -439,7 +545,9 @@ const PropertyManagerDashboard: React.FC = () => {
 
                 <div>
                   <h4 className="font-medium text-gray-900">Owner</h4>
-                  <p className="text-gray-600 mt-1">{getOwnerName(selectedProperty.ownerId)}</p>
+                  <p className="text-gray-600 mt-1">
+                    {getOwnerName(selectedProperty.ownerId)}
+                  </p>
                 </div>
               </div>
             </div>

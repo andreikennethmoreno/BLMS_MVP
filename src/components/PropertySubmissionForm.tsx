@@ -1,31 +1,43 @@
-import React, { useState } from 'react';
-import { Save, X } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { updatePropertyWithCommission } from '../utils/propertyCalculations';
-import { convertMaxStayToDays, formatMaxStayDisplay, calculateTermClassification } from '../utils/calculations';
+import React, { useState } from "react";
+import { Save, X } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { updatePropertyWithCommission } from "../utils/propertyCalculations";
+import {
+  convertMaxStayToDays,
+  formatMaxStayDisplay,
+  calculateTermClassification,
+} from "../utils/calculations";
+import { Property } from "../types";
+import { PROPERTY_STATUS } from "../config/constants";
 
 interface PropertySubmissionFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
 
-const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmit, onCancel }) => {
+const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({
+  onSubmit,
+  onCancel,
+}) => {
   const { user } = useAuth();
-  const [properties, setProperties] = useLocalStorage('properties', []);
+  const [properties, setProperties] = useLocalStorage<Property[]>(
+    "properties",
+    [] as Property[]
+  );
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    address: '',
-    images: [''],
-    amenities: [''],
+    title: "",
+    description: "",
+    address: "",
+    images: [""],
+    amenities: [""],
     bedrooms: 1,
     bathrooms: 1,
     maxGuests: 2,
     proposedRate: 100,
-    rentalType: 'short-term' as 'short-term' | 'long-term',
+    rentalType: "short-term" as "short-term" | "long-term",
     maxStayValue: 6,
-    maxStayUnit: 'months' as 'days' | 'months' | 'years'
+    maxStayUnit: "months" as "days" | "months" | "years",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,14 +45,20 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
     if (!user) return;
 
     // Calculate maximum stay in days and term classification
-    const maxStayDays = convertMaxStayToDays(formData.maxStayValue, formData.maxStayUnit);
-    const maxStayDisplay = formatMaxStayDisplay(formData.maxStayValue, formData.maxStayUnit);
+    const maxStayDays = convertMaxStayToDays(
+      formData.maxStayValue,
+      formData.maxStayUnit
+    );
+    const maxStayDisplay = formatMaxStayDisplay(
+      formData.maxStayValue,
+      formData.maxStayUnit
+    );
     const termClassification = calculateTermClassification(maxStayDays);
 
     // Calculate rates with commission
     const propertyWithRates = updatePropertyWithCommission(formData, 15);
 
-    const newProperty = {
+    const newProperty: Property = {
       id: `prop-${Date.now()}`,
       ownerId: user.id,
       ...propertyWithRates,
@@ -48,11 +66,11 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
       maxStayUnit: formData.maxStayUnit,
       maxStayDisplay,
       termClassification,
-      images: formData.images.filter(img => img.trim() !== ''),
-      amenities: formData.amenities.filter(amenity => amenity.trim() !== ''),
-      status: 'pending_review',
+      images: formData.images.filter((img) => img.trim() !== ""),
+      amenities: formData.amenities.filter((amenity) => amenity.trim() !== ""),
+      status: PROPERTY_STATUS.PENDING_REVIEW,
       submittedAt: new Date().toISOString(),
-      contractApproved: false
+      contractApproved: false,
     };
 
     setProperties([...properties, newProperty]);
@@ -60,47 +78,49 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
   };
 
   const addImageField = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      images: [...prev.images, '']
+      images: [...prev.images, ""],
     }));
   };
 
   const updateImage = (index: number, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      images: prev.images.map((img, i) => i === index ? value : img)
+      images: prev.images.map((img, i) => (i === index ? value : img)),
     }));
   };
 
   const removeImage = (index: number) => {
     if (formData.images.length > 1) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        images: prev.images.filter((_, i) => i !== index)
+        images: prev.images.filter((_, i) => i !== index),
       }));
     }
   };
 
   const addAmenityField = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      amenities: [...prev.amenities, '']
+      amenities: [...prev.amenities, ""],
     }));
   };
 
   const updateAmenity = (index: number, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      amenities: prev.amenities.map((amenity, i) => i === index ? value : amenity)
+      amenities: prev.amenities.map((amenity, i) =>
+        i === index ? value : amenity
+      ),
     }));
   };
 
   const removeAmenity = (index: number) => {
     if (formData.amenities.length > 1) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        amenities: prev.amenities.filter((_, i) => i !== index)
+        amenities: prev.amenities.filter((_, i) => i !== index),
       }));
     }
   };
@@ -115,7 +135,9 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
           <input
             type="text"
             value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, title: e.target.value }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             required
           />
@@ -127,7 +149,9 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
           </label>
           <textarea
             value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, description: e.target.value }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             rows={4}
             required
@@ -141,7 +165,9 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
           <input
             type="text"
             value={formData.address}
-            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, address: e.target.value }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             required
           />
@@ -155,7 +181,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
             type="number"
             min="1"
             value={formData.bedrooms}
-            onChange={(e) => setFormData(prev => ({ ...prev, bedrooms: Number(e.target.value) }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                bedrooms: Number(e.target.value),
+              }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
@@ -168,7 +199,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
             type="number"
             min="1"
             value={formData.bathrooms}
-            onChange={(e) => setFormData(prev => ({ ...prev, bathrooms: Number(e.target.value) }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                bathrooms: Number(e.target.value),
+              }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
@@ -181,7 +217,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
             type="number"
             min="1"
             value={formData.maxGuests}
-            onChange={(e) => setFormData(prev => ({ ...prev, maxGuests: Number(e.target.value) }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                maxGuests: Number(e.target.value),
+              }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
@@ -196,7 +237,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
               type="number"
               min="1"
               value={formData.proposedRate}
-              onChange={(e) => setFormData(prev => ({ ...prev, proposedRate: Number(e.target.value) }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  proposedRate: Number(e.target.value),
+                }))
+              }
               className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
           </div>
@@ -208,7 +254,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
           </label>
           <select
             value={formData.rentalType}
-            onChange={(e) => setFormData(prev => ({ ...prev, rentalType: e.target.value as 'short-term' | 'long-term' }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                rentalType: e.target.value as "short-term" | "long-term",
+              }))
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="short-term">Short-term Rental</option>
@@ -229,7 +280,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
                 type="number"
                 min="1"
                 value={formData.maxStayValue}
-                onChange={(e) => setFormData(prev => ({ ...prev, maxStayValue: Number(e.target.value) }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    maxStayValue: Number(e.target.value),
+                  }))
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 placeholder="Enter number"
               />
@@ -237,7 +293,12 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
             <div>
               <select
                 value={formData.maxStayUnit}
-                onChange={(e) => setFormData(prev => ({ ...prev, maxStayUnit: e.target.value as 'days' | 'months' | 'years' }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    maxStayUnit: e.target.value as "days" | "months" | "years",
+                  }))
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="days">Days</option>
@@ -251,8 +312,21 @@ const PropertySubmissionForm: React.FC<PropertySubmissionFormProps> = ({ onSubmi
           </p>
           <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Classification:</strong> {calculateTermClassification(convertMaxStayToDays(formData.maxStayValue, formData.maxStayUnit)) === 'short-term' ? 'Short-term' : 'Long-term'} 
-              ({formatMaxStayDisplay(formData.maxStayValue, formData.maxStayUnit)} maximum)
+              <strong>Classification:</strong>{" "}
+              {calculateTermClassification(
+                convertMaxStayToDays(
+                  formData.maxStayValue,
+                  formData.maxStayUnit
+                )
+              ) === "short-term"
+                ? "Short-term"
+                : "Long-term"}
+              (
+              {formatMaxStayDisplay(
+                formData.maxStayValue,
+                formData.maxStayUnit
+              )}{" "}
+              maximum)
             </p>
           </div>
         </div>

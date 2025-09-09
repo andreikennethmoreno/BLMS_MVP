@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FileText, Plus, Edit, Trash2, Save, X, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Eye } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import ContractPDFViewer from "./ContractPDFViewer";
@@ -53,8 +53,10 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
   const [editingTemplate, setEditingTemplate] =
     useState<ContractTemplate | null>(null);
   const [showNewTemplateForm, setShowNewTemplateForm] = useState(false);
-  const [showPDFPreview, setShowPDFPreview] = useState<ContractTemplate | null>(null);
-  const [newTemplate, setNewTemplate] = useState({
+  const [showPDFPreview, setShowPDFPreview] = useState<ContractTemplate | null>(
+    null
+  );
+  const [newTemplate] = useState({
     name: "Sample Contract Template",
     description: "Description of the sample contract template",
     commissionPercentage: 15,
@@ -250,7 +252,9 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-900">Contract Template Preview</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900">
+                    Contract Template Preview
+                  </h3>
                   <p className="text-gray-600">{showPDFPreview.name}</p>
                 </div>
                 <button
@@ -263,14 +267,17 @@ const ContractTemplateEditor: React.FC<ContractTemplateEditorProps> = ({
 
               <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <p className="text-gray-700 text-sm">
-                  This is a preview of how the contract template will appear as a PDF when sent to unit owners.
+                  This is a preview of how the contract template will appear as
+                  a PDF when sent to unit owners.
                 </p>
               </div>
 
-              <ContractPDFViewer
-                template={showPDFPreview}
-                showSignatureOption={false}
-              />
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <ContractPDFViewer
+                  template={showPDFPreview}
+                  showSignatureOption={false}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -359,7 +366,10 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
             type="text"
             value={currentTemplate.name}
             onChange={(e) =>
-              setCurrentTemplate((prev) => ({ ...prev, name: e.target.value }))
+              setCurrentTemplate((prev: any) => ({
+                ...prev,
+                name: e.target.value,
+              }))
             }
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
@@ -377,7 +387,7 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
               max="100"
               value={currentTemplate.commissionPercentage}
               onChange={(e) =>
-                setCurrentTemplate((prev) => ({
+                setCurrentTemplate((prev: any) => ({
                   ...prev,
                   commissionPercentage: Number(e.target.value),
                 }))
@@ -397,7 +407,7 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
         <textarea
           value={currentTemplate.description}
           onChange={(e) =>
-            setCurrentTemplate((prev) => ({
+            setCurrentTemplate((prev: any) => ({
               ...prev,
               description: e.target.value,
             }))
