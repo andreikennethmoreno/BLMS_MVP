@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Send, Eye, Upload, Download, Calendar, User, CheckCircle, Clock, X } from 'lucide-react';
+import { FileText, Send, Eye, Upload, Download, Calendar, User, CheckCircle, Clock, X, PenTool } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import PDFPreviewModal from './PDFPreviewModal';

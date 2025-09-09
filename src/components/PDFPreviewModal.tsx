@@ -1,11 +1,34 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { ZoomIn, ZoomOut, RotateCw, Download, FileText, X, PenTool, Save } from 'lucide-react';
-import SignatureCanvas from 'react-signature-canvas';
-import { PDFDocument, rgb } from 'pdf-lib';
+// Here are the main issues and fixes for your PDF preview:
 
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// 1. CORS Issues - Most common problem
+// When loading PDFs from external URLs, CORS policies often block the preview
+// but downloads work because they don't require cross-origin access
+
+// 2. PDF.js Worker Configuration Issue
+// The current worker setup might not work reliably
+
+// 3. Error Handling - Need better error reporting
+
+// Here's the corrected PDFPreviewModal with fixes:
+
+import React, { useState, useRef, useCallback } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Download,
+  FileText,
+  X,
+  PenTool,
+  Save,
+  AlertCircle,
+} from "lucide-react";
+import SignatureCanvas from "react-signature-canvas";
+import { PDFDocument, rgb } from "pdf-lib";
+
+// Fix 1: Better PDF.js worker configuration
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFPreviewModalProps {
   isOpen: boolean;
@@ -32,42 +55,79 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
   documentTitle,
   documentId,
   onSignatureComplete,
-  allowSigning = false
+  allowSigning = false,
 }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [rotation, setRotation] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
-  const [signaturePosition, setSignaturePosition] = useState<SignaturePosition | null>(null);
+  const [signaturePosition, setSignaturePosition] =
+    useState<SignaturePosition | null>(null);
   const [isPlacingSignature, setIsPlacingSignature] = useState<boolean>(false);
-  const [signatureDataUrl, setSignatureDataUrl] = useState<string>('');
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const signatureCanvasRef = useRef<SignatureCanvas>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
+  const onDocumentLoadSuccess = useCallback(
+    ({ numPages }: { numPages: number }) => {
+      setNumPages(numPages);
+      setIsLoading(false);
+      setError("");
+    },
+    []
+  );
+
+  // Fix 2: Better error handling with specific error messages
+  const onDocumentLoadError = useCallback((error: Error) => {
+    console.error("Error loading PDF:", error);
     setIsLoading(false);
+
+    // Provide specific error messages based on error type
+    if (error.message.includes("CORS")) {
+      setError(
+        "CORS Error: Cannot preview this PDF due to cross-origin restrictions. You can still download it."
+      );
+    } else if (error.message.includes("fetch")) {
+      setError(
+        "Network Error: Cannot load PDF. Please check the URL or try downloading instead."
+      );
+    } else if (error.message.includes("Invalid PDF")) {
+      setError(
+        "Invalid PDF: The file appears to be corrupted or not a valid PDF."
+      );
+    } else {
+      setError(
+        `Preview Error: ${error.message}. You can still download the PDF.`
+      );
+    }
   }, []);
 
-  const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('Error loading PDF:', error);
-    setIsLoading(false);
-  }, []);
+  // Fix 3: Add options to handle CORS and other issues
+  const documentOptions = {
+    // Add CORS handling options
+    httpHeaders: {},
+    withCredentials: false,
+    // Handle different URL types
+    url: pdfUrl,
+    cMapUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/cmaps/`,
+    cMapPacked: true,
+  };
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.2, 3.0));
+    setScale((prev) => Math.min(prev + 0.2, 3.0));
   };
 
   const handleZoomOut = () => {
-    setScale(prev => Math.max(prev - 0.2, 0.5));
+    setScale((prev) => Math.max(prev - 0.2, 0.5));
   };
 
   const handleRotate = () => {
-    setRotation(prev => (prev + 90) % 360);
+    setRotation((prev) => (prev + 90) % 360);
   };
 
   const handlePageClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -82,7 +142,7 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
       y: y / scale,
       page: currentPage,
       width: 200,
-      height: 60
+      height: 60,
     });
 
     setIsPlacingSignature(false);
@@ -110,35 +170,37 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
 
     try {
       let pdfBytes: ArrayBuffer;
-      
-      if (pdfUrl.startsWith('blob:')) {
-        // Handle blob URLs (generated PDFs)
+
+      // Fix 4: Better handling of different URL types
+      if (pdfUrl.startsWith("blob:") || pdfUrl.startsWith("data:")) {
         const response = await fetch(pdfUrl);
         pdfBytes = await response.arrayBuffer();
       } else {
-        // Handle regular URLs
-        const response = await fetch(pdfUrl);
-        pdfBytes = await response.arrayBuffer();
+        // For external URLs, try with CORS mode first, then no-cors
+        try {
+          const response = await fetch(pdfUrl, { mode: "cors" });
+          pdfBytes = await response.arrayBuffer();
+        } catch (corsError) {
+          // If CORS fails, try no-cors mode
+          const response = await fetch(pdfUrl, { mode: "no-cors" });
+          pdfBytes = await response.arrayBuffer();
+        }
       }
 
-      // Load the PDF document
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const pages = pdfDoc.getPages();
       const page = pages[signaturePosition.page - 1];
 
-      // Convert signature data URL to PNG bytes
       const signatureResponse = await fetch(signatureDataUrl);
       const signatureImageBytes = await signatureResponse.arrayBuffer();
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
 
-      // Get page dimensions
       const { width: pageWidth, height: pageHeight } = page.getSize();
 
-      // Calculate signature position (PDF coordinates are from bottom-left)
       const signatureX = signaturePosition.x;
-      const signatureY = pageHeight - signaturePosition.y - signaturePosition.height;
+      const signatureY =
+        pageHeight - signaturePosition.y - signaturePosition.height;
 
-      // Draw the signature on the PDF
       page.drawImage(signatureImage, {
         x: signatureX,
         y: signatureY,
@@ -146,7 +208,6 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
         height: signaturePosition.height,
       });
 
-      // Add signature metadata
       const now = new Date();
       page.drawText(`Digitally signed by: Unit Owner`, {
         x: signatureX,
@@ -155,34 +216,47 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
         color: rgb(0.5, 0.5, 0.5),
       });
 
-      page.drawText(`Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, {
-        x: signatureX,
-        y: signatureY - 25,
-        size: 8,
-        color: rgb(0.5, 0.5, 0.5),
-      });
+      page.drawText(
+        `Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+        {
+          x: signatureX,
+          y: signatureY - 25,
+          size: 8,
+          color: rgb(0.5, 0.5, 0.5),
+        }
+      );
 
-      // Save the modified PDF
       const modifiedPdfBytes = await pdfDoc.save();
-      const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([new Uint8Array(modifiedPdfBytes)], {
+        type: "application/pdf",
+      });
 
       onSignatureComplete(blob);
       onClose();
     } catch (error) {
-      console.error('Error applying signature:', error);
-      alert('Error applying signature. Please try again.');
+      console.error("Error applying signature:", error);
+      alert("Error applying signature. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const downloadPDF = () => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = pdfUrl;
     link.download = `${documentTitle}.pdf`;
+    link.target = "_blank"; // Open in new tab as fallback
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Fix 5: Add retry mechanism for failed PDF loads
+  const retryLoad = () => {
+    setIsLoading(true);
+    setError("");
+    // Force re-render of Document component
+    setCurrentPage(1);
   };
 
   if (!isOpen) return null;
@@ -195,26 +269,32 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
           <div className="flex items-center space-x-3">
             <FileText className="w-6 h-6 text-blue-600" />
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{documentTitle}</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {documentTitle}
+              </h2>
               <p className="text-sm text-gray-600">PDF Document Preview</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            {allowSigning && (
+            {allowSigning && !error && (
               <>
                 <button
                   onClick={() => setIsPlacingSignature(!isPlacingSignature)}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    isPlacingSignature 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    isPlacingSignature
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                   }`}
                 >
                   <PenTool className="w-4 h-4" />
-                  <span>{isPlacingSignature ? 'Click to Place Signature' : 'Add Signature'}</span>
+                  <span>
+                    {isPlacingSignature
+                      ? "Click to Place Signature"
+                      : "Add Signature"}
+                  </span>
                 </button>
-                
+
                 {signatureDataUrl && signaturePosition && (
                   <button
                     onClick={handleApplySignature}
@@ -236,7 +316,7 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                 )}
               </>
             )}
-            
+
             <button
               onClick={downloadPDF}
               className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -244,7 +324,7 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
               <Download className="w-4 h-4" />
               <span>Download</span>
             </button>
-            
+
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
@@ -254,140 +334,191 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
           </div>
         </div>
 
-        {/* Toolbar */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+        {/* Toolbar - Only show if no error */}
+        {!error && (
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleZoomOut}
+                  className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={scale <= 0.5}
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-medium text-gray-700 min-w-[60px] text-center">
+                  {Math.round(scale * 100)}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={scale >= 3.0}
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+              </div>
+
               <button
-                onClick={handleZoomOut}
+                onClick={handleRotate}
                 className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={scale <= 0.5}
               >
-                <ZoomOut className="w-4 h-4" />
-              </button>
-              <span className="text-sm font-medium text-gray-700 min-w-[60px] text-center">
-                {Math.round(scale * 100)}%
-              </span>
-              <button
-                onClick={handleZoomIn}
-                className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={scale >= 3.0}
-              >
-                <ZoomIn className="w-4 h-4" />
+                <RotateCw className="w-4 h-4" />
               </button>
             </div>
 
-            <button
-              onClick={handleRotate}
-              className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                disabled={currentPage <= 1}
-              >
-                Previous
-              </button>
-              <span className="text-sm font-medium text-gray-700">
-                Page {currentPage} of {numPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                disabled={currentPage >= numPages}
-              >
-                Next
-              </button>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                  disabled={currentPage <= 1}
+                >
+                  Previous
+                </button>
+                <span className="text-sm font-medium text-gray-700">
+                  Page {currentPage} of {numPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, numPages))
+                  }
+                  className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                  disabled={currentPage >= numPages}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* PDF Viewer */}
-        <div className="flex-1 overflow-auto bg-gray-100 p-4" ref={containerRef}>
+        <div
+          className="flex-1 overflow-auto bg-gray-100 p-4"
+          ref={containerRef}
+        >
           <div className="flex justify-center">
-            <div 
-              className={`relative bg-white shadow-lg ${isPlacingSignature ? 'cursor-crosshair' : ''}`}
-              onClick={handlePageClick}
-            >
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-gray-600">Loading PDF...</span>
+            {/* Error Display */}
+            {error && (
+              <div className="max-w-2xl w-full bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-yellow-800 mb-2">
+                      Preview Not Available
+                    </h3>
+                    <p className="text-yellow-700 mb-4">{error}</p>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={retryLoad}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Try Again
+                      </button>
+                      <button
+                        onClick={downloadPDF}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Download PDF Instead
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <Document
-                file={pdfUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                loading=""
+            {/* PDF Document */}
+            {!error && (
+              <div
+                className={`relative bg-white shadow-lg ${
+                  isPlacingSignature ? "cursor-crosshair" : ""
+                }`}
+                onClick={handlePageClick}
               >
-                <Page
-                  pageNumber={currentPage}
-                  scale={scale}
-                  rotate={rotation}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              </Document>
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white min-h-[600px]">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-gray-600">Loading PDF...</span>
+                    </div>
+                  </div>
+                )}
 
-              {/* Signature Overlay */}
-              {signatureDataUrl && signaturePosition && signaturePosition.page === currentPage && (
-                <div
-                  className="absolute border-2 border-blue-500 bg-blue-50 bg-opacity-50 rounded"
-                  style={{
-                    left: signaturePosition.x * scale,
-                    top: signaturePosition.y * scale,
-                    width: signaturePosition.width * scale,
-                    height: signaturePosition.height * scale,
-                  }}
+                <Document
+                  file={documentOptions}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
+                  loading=""
+                  error=""
                 >
-                  <img
-                    src={signatureDataUrl}
-                    alt="Signature"
-                    className="w-full h-full object-contain"
+                  <Page
+                    pageNumber={currentPage}
+                    scale={scale}
+                    rotate={rotation}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
                   />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSignaturePosition(null);
-                      setSignatureDataUrl('');
-                    }}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
+                </Document>
 
-              {/* Placement Instructions */}
-              {isPlacingSignature && (
-                <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
-                  <p className="text-sm font-medium">Click where you want to place your signature</p>
-                </div>
-              )}
-            </div>
+                {/* Signature Overlay */}
+                {signatureDataUrl &&
+                  signaturePosition &&
+                  signaturePosition.page === currentPage && (
+                    <div
+                      className="absolute border-2 border-blue-500 bg-blue-50 bg-opacity-50 rounded"
+                      style={{
+                        left: signaturePosition.x * scale,
+                        top: signaturePosition.y * scale,
+                        width: signaturePosition.width * scale,
+                        height: signaturePosition.height * scale,
+                      }}
+                    >
+                      <img
+                        src={signatureDataUrl}
+                        alt="Signature"
+                        className="w-full h-full object-contain"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSignaturePosition(null);
+                          setSignatureDataUrl("");
+                        }}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+
+                {/* Placement Instructions */}
+                {isPlacingSignature && (
+                  <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
+                    <p className="text-sm font-medium">
+                      Click where you want to place your signature
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Status Bar */}
         <div className="p-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between text-sm text-gray-600">
-            <div>
-              Document ID: {documentId}
-            </div>
+            <div>Document ID: {documentId}</div>
             <div>
               {signatureDataUrl && signaturePosition && (
                 <span className="text-green-600 font-medium">
                   ✓ Signature ready to apply
+                </span>
+              )}
+              {error && (
+                <span className="text-red-600 font-medium">
+                  Preview unavailable - download to view
                 </span>
               )}
             </div>
@@ -401,7 +532,9 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
           <div className="bg-white rounded-xl max-w-2xl w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Create Your Signature</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Create Your Signature
+                </h3>
                 <button
                   onClick={() => setShowSignatureModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -421,7 +554,7 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
                       canvasProps={{
                         width: 500,
                         height: 200,
-                        className: 'signature-canvas w-full h-full'
+                        className: "signature-canvas w-full h-full",
                       }}
                       backgroundColor="rgb(255, 255, 255)"
                       penColor="rgb(0, 0, 0)"
