@@ -729,34 +729,34 @@ const UnitOwnerDashboard: React.FC = () => {
                 </section>
 
                 {/* Amenities (free inputs) */}
-              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Amenities
-  </label>
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-    {amenitiesList.map((amenity) => (
-      <button
-        type="button"
-        key={amenity}
-        onClick={() =>
-          setNewProperty((prev) => ({
-            ...prev,
-            amenities: prev.amenities.includes(amenity)
-              ? prev.amenities.filter((a) => a !== amenity)
-              : [...prev.amenities, amenity],
-          }))
-        }
-        className={`px-3 py-2 rounded-lg border text-sm ${
-          newProperty.amenities.includes(amenity)
-            ? "bg-emerald-600 text-white border-emerald-600"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-        }`}
-      >
-        {amenity}
-      </button>
-    ))}
-  </div>
-</div>
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Amenities
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {amenitiesList.map((amenity) => (
+                      <button
+                        type="button"
+                        key={amenity}
+                        onClick={() =>
+                          setNewProperty((prev) => ({
+                            ...prev,
+                            amenities: prev.amenities.includes(amenity)
+                              ? prev.amenities.filter((a) => a !== amenity)
+                              : [...prev.amenities, amenity],
+                          }))
+                        }
+                        className={`px-3 py-2 rounded-lg border text-sm ${
+                          newProperty.amenities.includes(amenity)
+                            ? "bg-emerald-600 text-white border-emerald-600"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {amenity}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
 
                 {/* Property Description */}
