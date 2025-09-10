@@ -5,6 +5,7 @@ import LandingPage from './components/LandingPage';
 import SearchResultsPage from './components/SearchResultsPage';
 import ListingDetailsPage from './components/ListingDetailsPage';
 import AppLayout from './components/layout/AppLayout';
+import TopNavigation from './components/layout/TopNavigation';
 import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
 import PropertyManagerOwners from './components/PropertyManagerOwners';
@@ -42,21 +43,23 @@ interface SearchParams {
  */
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState("dashboard");
   const [showLogin, setShowLogin] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
+    null
+  );
 
   // Handle search from landing page
   const handleSearch = (params: SearchParams) => {
     setSearchParams(params);
-    setCurrentView('search-results');
+    setCurrentView("search-results");
   };
 
   // Handle property selection from search results
   const handlePropertySelect = (propertyId: string) => {
     setSelectedPropertyId(propertyId);
-    setCurrentView('listing-details');
+    setCurrentView("listing-details");
   };
 
   // Handle booking attempt - redirect to login if not authenticated
@@ -74,72 +77,83 @@ const AppContent: React.FC = () => {
   }
 
   // Landing page for non-authenticated users or when explicitly requested
-  if (!isAuthenticated || currentView === 'landing') {
+  if (!isAuthenticated || currentView === "landing") {
     return (
-      <LandingPage 
-        onSearch={handleSearch}
-        onLogin={() => setShowLogin(true)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-      />
+      <div className="min-h-screen flex flex-col">
+        <TopNavigation
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          onLoginClick={() => setShowLogin(true)}
+        />
+        <LandingPage
+          onSearch={handleSearch}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </div>
     );
   }
 
   // Search results page
-  if (currentView === 'search-results' && searchParams) {
+  if (currentView === "search-results" && searchParams) {
     return (
-      <SearchResultsPage
-        searchParams={searchParams}
-        onPropertySelect={handlePropertySelect}
-        onBackToLanding={() => setCurrentView('landing')}
-        onLogin={() => setShowLogin(true)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-      />
+      <div className="min-h-screen flex flex-col">
+        <SearchResultsPage
+          searchParams={searchParams}
+          onPropertySelect={handlePropertySelect}
+          onBackToLanding={() => setCurrentView("landing")}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </div>
     );
   }
 
   // Individual listing details page
-  if (currentView === 'listing-details' && selectedPropertyId) {
+  if (currentView === "listing-details" && selectedPropertyId) {
     return (
-      <ListingDetailsPage
-        propertyId={selectedPropertyId}
-        onBack={() => setCurrentView('search-results')}
-        onBookingAttempt={handleBookingAttempt}
-        onLogin={() => setShowLogin(true)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-      />
+      <div className="min-h-screen flex flex-col">
+        <ListingDetailsPage
+          propertyId={selectedPropertyId}
+          onBack={() => setCurrentView("search-results")}
+          onBookingAttempt={handleBookingAttempt}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </div>
     );
   }
 
   /**
    * Route Rendering Logic
-   * 
+   *
    * Maps view IDs to their corresponding components based on user role.
    * Each role has access to different views as defined in config/routes.ts
    */
   const renderContent = () => {
     // Property Manager Routes
-    if (user?.role === 'property_manager') {
+    if (user?.role === "property_manager") {
       switch (currentView) {
-        case 'dashboard':
+        case "dashboard":
           return <PropertyManagerDashboard />;
-        case 'properties':
+        case "properties":
           return <PropertyManagerProperties />;
-        case 'owners':
+        case "owners":
           return <PropertyManagerOwners />;
-        case 'bookings':
+        case "bookings":
           return <PropertyManagerBookings />;
-        case 'calendar':
+        case "calendar":
           return <CalendarView />;
-        case 'concerns':
+        case "concerns":
           return <ConcernSystem />;
-        case 'jobs':
+        case "jobs":
           return <JobOrderSystem />;
-        case 'forms':
+        case "forms":
           return <FormTemplateSystem />;
-        case 'analytics':
+        case "analytics":
           return <AnalyticsDashboard />;
         default:
           return <PropertyManagerDashboard />;
@@ -147,19 +161,19 @@ const AppContent: React.FC = () => {
     }
 
     // Unit Owner Routes
-    if (user?.role === 'unit_owner') {
+    if (user?.role === "unit_owner") {
       switch (currentView) {
-        case 'dashboard':
+        case "dashboard":
           return <UnitOwnerDashboard />;
-        case 'properties':
+        case "properties":
           return <UnitOwnerProperties />;
-        case 'bookings':
+        case "bookings":
           return <UnitOwnerBookings />;
-        case 'calendar':
+        case "calendar":
           return <CalendarView />;
-        case 'concerns':
+        case "concerns":
           return <ConcernSystem />;
-        case 'analytics':
+        case "analytics":
           return <AnalyticsDashboard />;
         default:
           return <UnitOwnerDashboard />;
@@ -167,31 +181,35 @@ const AppContent: React.FC = () => {
     }
 
     // Customer Routes
-    if (user?.role === 'customer') {
+    if (user?.role === "customer") {
       switch (currentView) {
-        case 'landing':
+        case "landing":
           return (
-            <LandingPage 
-              onSearch={handleSearch}
-              onLogin={() => setShowLogin(true)}
-              isAuthenticated={isAuthenticated}
-              user={user}
-            />
+            <div className="min-h-screen flex flex-col">
+              <LandingPage
+                onSearch={handleSearch}
+                onLogin={() => setShowLogin(true)}
+                isAuthenticated={isAuthenticated}
+                user={user}
+              />
+            </div>
           );
-        case 'browse':
+        case "browse":
           return <CustomerDashboard />;
-        case 'bookings':
+        case "bookings":
           return <CustomerBookings />;
-        case 'concerns':
+        case "concerns":
           return <ConcernSystem />;
         default:
           return (
-            <LandingPage 
-              onSearch={handleSearch}
-              onLogin={() => setShowLogin(true)}
-              isAuthenticated={isAuthenticated}
-              user={user}
-            />
+            <div className="min-h-screen flex flex-col">
+              <LandingPage
+                onSearch={handleSearch}
+                onLogin={() => setShowLogin(true)}
+                isAuthenticated={isAuthenticated}
+                user={user}
+              />
+            </div>
           );
       }
     }
@@ -200,10 +218,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <AppLayout 
-      currentView={currentView} 
-      onViewChange={setCurrentView}
-    >
+    <AppLayout currentView={currentView} onViewChange={setCurrentView}>
       {renderContent()}
     </AppLayout>
   );
