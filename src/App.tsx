@@ -5,6 +5,7 @@ import LandingPage from './components/LandingPage';
 import SearchResultsPage from './components/SearchResultsPage';
 import ListingDetailsPage from './components/ListingDetailsPage';
 import AppLayout from './components/layout/AppLayout';
+import TopNavigation from './components/layout/TopNavigation';
 import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
 import PropertyManagerOwners from './components/PropertyManagerOwners';
@@ -76,34 +77,37 @@ const AppContent: React.FC = () => {
   // Landing page for non-authenticated users or when explicitly requested
   if (!isAuthenticated || currentView === 'landing') {
     return (
-      <LandingPage 
-        onSearch={handleSearch}
-        onLogin={() => setShowLogin(true)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-      />
+      <div className="min-h-screen flex flex-col">
+        <LandingPage 
+          onSearch={handleSearch}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </div>
     );
   }
 
   // Search results page
   if (currentView === 'search-results' && searchParams) {
     return (
-      <SearchResultsPage
-        searchParams={searchParams}
-        onPropertySelect={handlePropertySelect}
-        onBackToLanding={() => setCurrentView('landing')}
-        onLogin={() => setShowLogin(true)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-      />
+      <div className="min-h-screen flex flex-col">
+        <SearchResultsPage
+          searchParams={searchParams}
+          onPropertySelect={handlePropertySelect}
+          onBackToLanding={() => setCurrentView('landing')}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </div>
     );
   }
 
   // Individual listing details page
   if (currentView === 'listing-details' && selectedPropertyId) {
     return (
-      <>
-      
+      <div className="min-h-screen flex flex-col">
         <ListingDetailsPage
           propertyId={selectedPropertyId}
           onBack={() => setCurrentView("search-results")}
@@ -112,7 +116,7 @@ const AppContent: React.FC = () => {
           isAuthenticated={isAuthenticated}
           user={user}
         />
-      </>
+      </div>
     );
   }
 
@@ -174,12 +178,14 @@ const AppContent: React.FC = () => {
       switch (currentView) {
         case 'landing':
           return (
-            <LandingPage 
-              onSearch={handleSearch}
-              onLogin={() => setShowLogin(true)}
-              isAuthenticated={isAuthenticated}
-              user={user}
-            />
+            <div className="min-h-screen flex flex-col">
+              <LandingPage 
+                onSearch={handleSearch}
+                onLogin={() => setShowLogin(true)}
+                isAuthenticated={isAuthenticated}
+                user={user}
+              />
+            </div>
           );
         case 'browse':
           return <CustomerDashboard />;
@@ -189,12 +195,14 @@ const AppContent: React.FC = () => {
           return <ConcernSystem />;
         default:
           return (
-            <LandingPage 
-              onSearch={handleSearch}
-              onLogin={() => setShowLogin(true)}
-              isAuthenticated={isAuthenticated}
-              user={user}
-            />
+            <div className="min-h-screen flex flex-col">
+              <LandingPage 
+                onSearch={handleSearch}
+                onLogin={() => setShowLogin(true)}
+                isAuthenticated={isAuthenticated}
+                user={user}
+              />
+            </div>
           );
       }
     }

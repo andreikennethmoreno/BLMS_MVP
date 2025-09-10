@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Filter, SlidersHorizontal, MapPin, Star, Users, Bed, Bath, Wifi, Car, Utensils, LogIn, User } from 'lucide-react';
+import { Filter, SlidersHorizontal, MapPin, Star, Users, Bed, Bath, Wifi, Car, Utensils } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import TopNavigation from './layout/TopNavigation';
 import propertiesData from '../data/properties.json';
 import reviewsData from '../data/reviews.json';
 import { isPropertyLiveForCustomers, getDisplayRate } from '../utils/propertyCalculations';
@@ -165,51 +166,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={onBackToLanding}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back</span>
-              </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">H</span>
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  HotelPlatform
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {isAuthenticated && user ? (
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">
-                      {user.name?.charAt(0)}
-                    </span>
-                  </div>
-                  <span className="text-gray-700 font-medium">{user.name}</span>
-                </div>
-              ) : (
-                <button
-                  onClick={onLogin}
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Login</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <div className="sticky top-0 z-40">
+        <TopNavigation
+          currentView="search-results"
+          onViewChange={() => {}}
+          showBackButton={true}
+          backButtonText="Back"
+          onBackClick={onBackToLanding}
+          onLoginClick={onLogin}
+        />
+      </div>
 
       {/* Search Summary */}
       <div className="bg-white border-b">
