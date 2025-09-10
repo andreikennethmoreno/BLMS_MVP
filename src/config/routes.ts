@@ -36,6 +36,12 @@ export const ROUTES: RouteConfig[] = [
     roles: ['property_manager', 'unit_owner']
   },
   {
+    id: 'landing',
+    label: 'Home',
+    icon: Home,
+    roles: ['customer']
+  },
+  {
     id: 'browse',
     label: 'Browse Properties',
     icon: Home,

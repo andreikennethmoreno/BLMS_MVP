@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/LoginForm';
+import LandingPage from './components/LandingPage';
+import SearchResultsPage from './components/SearchResultsPage';
+import ListingDetailsPage from './components/ListingDetailsPage';
 import AppLayout from './components/layout/AppLayout';
 import PropertyManagerDashboard from './components/PropertyManagerDashboard';
 import PropertyManagerProperties from './components/PropertyManagerProperties';
@@ -16,6 +19,13 @@ import ConcernSystem from './components/ConcernSystem';
 import JobOrderSystem from './components/JobOrderSystem';
 import FormTemplateSystem from './components/FormTemplateSystem';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+
+interface SearchParams {
+  destination: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+}
 
 /**
  * Main App Content Component
@@ -33,10 +43,74 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
+  const [showLogin, setShowLogin] = useState(false);
+  const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
-  // Show login form if user is not authenticated
-  if (!isAuthenticated) {
-    return <LoginForm />;
+  // Handle search from landing page
+  const handleSearch = (params: SearchParams) => {
+    setSearchParams(params);
+    setCurrentView('search-results');
+  };
+
+  // Handle property selection from search results
+  const handlePropertySelect = (propertyId: string) => {
+    setSelectedPropertyId(propertyId);
+    setCurrentView('listing-details');
+  };
+
+  // Handle booking attempt - redirect to login if not authenticated
+  const handleBookingAttempt = () => {
+    if (!isAuthenticated) {
+      setShowLogin(true);
+      return false;
+    }
+    return true;
+  };
+
+  // Show login modal if requested
+  if (showLogin) {
+    return <LoginForm onClose={() => setShowLogin(false)} />;
+  }
+
+  // Landing page for non-authenticated users or when explicitly requested
+  if (!isAuthenticated || currentView === 'landing') {
+    return (
+      <LandingPage 
+        onSearch={handleSearch}
+        onLogin={() => setShowLogin(true)}
+        isAuthenticated={isAuthenticated}
+        user={user}
+      />
+    );
+  }
+
+  // Search results page
+  if (currentView === 'search-results' && searchParams) {
+    return (
+      <SearchResultsPage
+        searchParams={searchParams}
+        onPropertySelect={handlePropertySelect}
+        onBackToLanding={() => setCurrentView('landing')}
+        onLogin={() => setShowLogin(true)}
+        isAuthenticated={isAuthenticated}
+        user={user}
+      />
+    );
+  }
+
+  // Individual listing details page
+  if (currentView === 'listing-details' && selectedPropertyId) {
+    return (
+      <ListingDetailsPage
+        propertyId={selectedPropertyId}
+        onBack={() => setCurrentView('search-results')}
+        onBookingAttempt={handleBookingAttempt}
+        onLogin={() => setShowLogin(true)}
+        isAuthenticated={isAuthenticated}
+        user={user}
+      />
+    );
   }
 
   /**
@@ -95,6 +169,15 @@ const AppContent: React.FC = () => {
     // Customer Routes
     if (user?.role === 'customer') {
       switch (currentView) {
+        case 'landing':
+          return (
+            <LandingPage 
+              onSearch={handleSearch}
+              onLogin={() => setShowLogin(true)}
+              isAuthenticated={isAuthenticated}
+              user={user}
+            />
+          );
         case 'browse':
           return <CustomerDashboard />;
         case 'bookings':
@@ -102,7 +185,14 @@ const AppContent: React.FC = () => {
         case 'concerns':
           return <ConcernSystem />;
         default:
-          return <CustomerDashboard />;
+          return (
+            <LandingPage 
+              onSearch={handleSearch}
+              onLogin={() => setShowLogin(true)}
+              isAuthenticated={isAuthenticated}
+              user={user}
+            />
+          );
       }
     }
 
