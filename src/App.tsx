@@ -102,14 +102,17 @@ const AppContent: React.FC = () => {
   // Individual listing details page
   if (currentView === 'listing-details' && selectedPropertyId) {
     return (
-      <ListingDetailsPage
-        propertyId={selectedPropertyId}
-        onBack={() => setCurrentView('search-results')}
-        onBookingAttempt={handleBookingAttempt}
-        onLogin={() => setShowLogin(true)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-      />
+      <>
+      
+        <ListingDetailsPage
+          propertyId={selectedPropertyId}
+          onBack={() => setCurrentView("search-results")}
+          onBookingAttempt={handleBookingAttempt}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </>
     );
   }
 
