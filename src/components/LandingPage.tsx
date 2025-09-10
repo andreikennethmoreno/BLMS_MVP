@@ -57,12 +57,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
       {/* Header */}
 
       
-        <TopNavigation
-          currentView="landing"
-          onViewChange={() => {}}
-          onLoginClick={onLogin}
-        />
-      
 
       {/* Hero Section with Search */}
       <div className="relative">

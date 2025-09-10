@@ -32,9 +32,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  if (!user) {
-    return <>{children}</>;
-  }
+  // Logged-out layout (landing, login, register, etc.)
+if (!user) {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <TopNavigation
+        currentView="landing"
+        onViewChange={() => {}}
+        onLoginClick={() => (window.location.href = "/login")}
+      />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
+}
 
   // Customer layout uses top navigation
   if (user.role === 'customer') {
