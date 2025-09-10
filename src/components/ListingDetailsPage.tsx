@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
-import { MapPin, Users, Bed, Bath, Wifi, Car, Utensils, Star, ChevronLeft, ChevronRight, Calendar, Shield, CheckCircle } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import TopNavigation from './layout/TopNavigation';
-import propertiesData from '../data/properties.json';
-import reviewsData from '../data/reviews.json';
-import bookingsData from '../data/bookings.json';
-import usersData from '../data/users.json';
-import BookingAvailabilityCalendar from './BookingAvailabilityCalendar';
-import CheckoutPage from './CheckoutPage';
-import BookingSuccessPage from './BookingSuccessPage';
-import ReviewSystem from './ReviewSystem';
-import { isPropertyLiveForCustomers, getDisplayRate } from '../utils/propertyCalculations';
-import { validateBookingDuration, calculateNights } from '../utils/calculations';
-import { Property, Booking } from '../types';
+import React, { useState } from "react";
+import {
+  MapPin,
+  Users,
+  Bed,
+  Bath,
+  Wifi,
+  Car,
+  Utensils,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Shield,
+  CheckCircle,
+} from "lucide-react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import TopNavigation from "./layout/TopNavigation";
+import propertiesData from "../data/properties.json";
+import reviewsData from "../data/reviews.json";
+import bookingsData from "../data/bookings.json";
+import usersData from "../data/users.json";
+import BookingAvailabilityCalendar from "./BookingAvailabilityCalendar";
+import CheckoutPage from "./CheckoutPage";
+import BookingSuccessPage from "./BookingSuccessPage";
+import ReviewSystem from "./ReviewSystem";
+import {
+  isPropertyLiveForCustomers,
+  getDisplayRate,
+} from "../utils/propertyCalculations";
+import {
+  validateBookingDuration,
+  calculateNights,
+} from "../utils/calculations";
+import { Property, Booking } from "../types";
 
 interface ListingDetailsPageProps {
   propertyId: string;
@@ -29,14 +49,14 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
   onBookingAttempt,
   onLogin,
   isAuthenticated,
-  user
+  user,
 }) => {
-  const [properties] = useLocalStorage('properties', propertiesData.properties);
-  const [bookings] = useLocalStorage('bookings', bookingsData.bookings);
-  const [reviews] = useLocalStorage('reviews', reviewsData.reviews);
+  const [properties] = useLocalStorage("properties", propertiesData.properties);
+  const [bookings] = useLocalStorage("bookings", bookingsData.bookings);
+  const [reviews] = useLocalStorage("reviews", reviewsData.reviews);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -44,14 +64,20 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
   const [completedBooking, setCompletedBooking] = useState<any>(null);
 
   const users = usersData.users;
-  const property = properties.find((p: Property) => p.id === propertyId) as Property;
+  const property = properties.find(
+    (p: Property) => p.id === propertyId
+  ) as Property;
 
   if (!property || !isPropertyLiveForCustomers(property)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h2>
-          <p className="text-gray-600 mb-6">The property you're looking for is not available.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Property Not Found
+          </h2>
+          <p className="text-gray-600 mb-6">
+            The property you're looking for is not available.
+          </p>
           <button
             onClick={onBack}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
@@ -63,10 +89,14 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
     );
   }
 
-  const propertyReviews = reviews.filter((r: any) => r.propertyId === propertyId);
-  const averageRating = propertyReviews.length > 0 
-    ? propertyReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / propertyReviews.length 
-    : 0;
+  const propertyReviews = reviews.filter(
+    (r: any) => r.propertyId === propertyId
+  );
+  const averageRating =
+    propertyReviews.length > 0
+      ? propertyReviews.reduce((sum: number, r: any) => sum + r.rating, 0) /
+        propertyReviews.length
+      : 0;
 
   const owner = users.find((u: any) => u.id === property.ownerId);
 
@@ -83,8 +113,8 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
   };
 
   const getBookedDatesForProperty = (propertyId: string) => {
-    const propertyBookings = bookings.filter((b: Booking) => 
-      b.propertyId === propertyId && b.status === 'confirmed'
+    const propertyBookings = bookings.filter(
+      (b: Booking) => b.propertyId === propertyId && b.status === "confirmed"
     );
     const bookedDates: string[] = [];
 
@@ -94,7 +124,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
 
       const currentDate = new Date(startDate);
       while (currentDate < endDate) {
-        bookedDates.push(currentDate.toISOString().split('T')[0]);
+        bookedDates.push(currentDate.toISOString().split("T")[0]);
         currentDate.setDate(currentDate.getDate() + 1);
       }
     });
@@ -103,8 +133,8 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
   };
 
   const isDateRangeAvailable = (checkInDate: string, checkOutDate: string) => {
-    const propertyBookings = bookings.filter((b: Booking) => 
-      b.propertyId === propertyId && b.status === 'confirmed'
+    const propertyBookings = bookings.filter(
+      (b: Booking) => b.propertyId === propertyId && b.status === "confirmed"
     );
     const requestStart = new Date(checkInDate);
     const requestEnd = new Date(checkOutDate);
@@ -130,17 +160,17 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
     }
 
     if (!checkIn || !checkOut) {
-      alert('Please select check-in and check-out dates');
+      alert("Please select check-in and check-out dates");
       return;
     }
 
     if (new Date(checkIn) >= new Date(checkOut)) {
-      alert('Check-out date must be after check-in date');
+      alert("Check-out date must be after check-in date");
       return;
     }
 
     if (!isDateRangeAvailable(checkIn, checkOut)) {
-      alert('This property is not available for the selected dates');
+      alert("This property is not available for the selected dates");
       return;
     }
 
@@ -151,7 +181,10 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
         property.maxStayDays
       );
       if (!durationValidation.isValid) {
-        alert(durationValidation.error || 'Booking duration exceeds maximum allowed stay');
+        alert(
+          durationValidation.error ||
+            "Booking duration exceeds maximum allowed stay"
+        );
         return;
       }
     }
@@ -184,12 +217,12 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
 
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
-      case 'wifi':
+      case "wifi":
         return <Wifi className="w-5 h-5" />;
-      case 'parking':
-      case 'car':
+      case "parking":
+      case "car":
         return <Car className="w-5 h-5" />;
-      case 'kitchen':
+      case "kitchen":
         return <Utensils className="w-5 h-5" />;
       default:
         return <Star className="w-5 h-5" />;
@@ -225,17 +258,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-40">
-        <TopNavigation
-          currentView="listing-details"
-          onViewChange={() => {}}
-          showBackButton={true}
-          backButtonText="Back to Results"
-          onBackClick={onBack}
-          onLoginClick={onLogin}
-        />
-      </div>
+     
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Property Images Gallery */}
@@ -246,7 +269,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
               alt={property.title}
               className="w-full h-full object-cover"
             />
-            
+
             {/* Image Navigation */}
             {property.images.length > 1 && (
               <>
@@ -262,7 +285,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
-                
+
                 {/* Image Indicators */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                   {property.images.map((_, index) => (
@@ -270,7 +293,9 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
                       className={`w-3 h-3 rounded-full transition-colors ${
-                        index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                        index === currentImageIndex
+                          ? "bg-white"
+                          : "bg-white bg-opacity-50"
                       }`}
                     />
                   ))}
@@ -290,7 +315,9 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
           <div className="lg:col-span-2 space-y-8">
             {/* Property Header */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{property.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {property.title}
+              </h1>
               <div className="flex items-center space-x-4 mb-4">
                 <p className="text-gray-600 flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
@@ -300,10 +327,13 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-1">
                       <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                      <span className="font-semibold text-gray-900">{averageRating.toFixed(1)}</span>
+                      <span className="font-semibold text-gray-900">
+                        {averageRating.toFixed(1)}
+                      </span>
                     </div>
                     <span className="text-gray-600">
-                      ({propertyReviews.length} review{propertyReviews.length !== 1 ? 's' : ''})
+                      ({propertyReviews.length} review
+                      {propertyReviews.length !== 1 ? "s" : ""})
                     </span>
                   </div>
                 )}
@@ -313,11 +343,12 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
               <div className="flex items-center space-x-6 text-gray-600">
                 <span className="flex items-center">
                   <Bed className="w-5 h-5 mr-2" />
-                  {property.bedrooms} bedroom{property.bedrooms > 1 ? 's' : ''}
+                  {property.bedrooms} bedroom{property.bedrooms > 1 ? "s" : ""}
                 </span>
                 <span className="flex items-center">
                   <Bath className="w-5 h-5 mr-2" />
-                  {property.bathrooms} bathroom{property.bathrooms > 1 ? 's' : ''}
+                  {property.bathrooms} bathroom
+                  {property.bathrooms > 1 ? "s" : ""}
                 </span>
                 <span className="flex items-center">
                   <Users className="w-5 h-5 mr-2" />
@@ -328,16 +359,25 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
 
             {/* Description */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">About this place</h2>
-              <p className="text-gray-700 leading-relaxed">{property.description}</p>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                About this place
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                {property.description}
+              </p>
             </div>
 
             {/* Amenities */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">What this place offers</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                What this place offers
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 {property.amenities.map((amenity, index) => (
-                  <div key={index} className="flex items-center space-x-3 text-gray-700">
+                  <div
+                    key={index}
+                    className="flex items-center space-x-3 text-gray-700"
+                  >
                     {getAmenityIcon(amenity)}
                     <span>{amenity}</span>
                   </div>
@@ -347,19 +387,25 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
 
             {/* Host Information */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Meet your host</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Meet your host
+              </h2>
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-xl">
-                    {owner?.name?.charAt(0) || 'H'}
+                    {owner?.name?.charAt(0) || "H"}
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{owner?.name || 'Host'}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {owner?.name || "Host"}
+                  </h3>
                   <p className="text-gray-600">Property Owner</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-600">Verified Host</span>
+                    <span className="text-sm text-green-600">
+                      Verified Host
+                    </span>
                   </div>
                 </div>
               </div>
@@ -368,18 +414,26 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
             {/* Maximum Stay Information */}
             {property.maxStayDisplay && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                <h2 className="text-xl font-semibold text-blue-900 mb-4">Stay Duration</h2>
+                <h2 className="text-xl font-semibold text-blue-900 mb-4">
+                  Stay Duration
+                </h2>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-blue-900">Maximum Allowed Stay</p>
+                    <p className="font-medium text-blue-900">
+                      Maximum Allowed Stay
+                    </p>
                     <p className="text-blue-800">{property.maxStayDisplay}</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    property.termClassification === 'short-term'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {property.termClassification === 'short-term' ? 'Short-term' : 'Long-term'}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      property.termClassification === "short-term"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {property.termClassification === "short-term"
+                      ? "Short-term"
+                      : "Long-term"}
                   </span>
                 </div>
               </div>
@@ -389,7 +443,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <ReviewSystem
                 propertyId={propertyId}
-                showAddReview={isAuthenticated && user?.role === 'customer'}
+                showAddReview={isAuthenticated && user?.role === "customer"}
               />
             </div>
           </div>
@@ -406,7 +460,8 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                 </div>
                 {property.baseRate && property.commissionPercentage && (
                   <div className="text-sm text-gray-500">
-                    Base rate: ${property.baseRate} + {property.commissionPercentage}% commission
+                    Base rate: ${property.baseRate} +{" "}
+                    {property.commissionPercentage}% commission
                   </div>
                 )}
               </div>
@@ -422,7 +477,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                       type="date"
                       value={checkIn}
                       onChange={(e) => setCheckIn(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={new Date().toISOString().split("T")[0]}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -434,7 +489,7 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                       type="date"
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
-                      min={checkIn || new Date().toISOString().split('T')[0]}
+                      min={checkIn || new Date().toISOString().split("T")[0]}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -449,9 +504,12 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                     onChange={(e) => setGuests(Number(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {Array.from({ length: property.maxGuests }, (_, i) => i + 1).map((num) => (
+                    {Array.from(
+                      { length: property.maxGuests },
+                      (_, i) => i + 1
+                    ).map((num) => (
                       <option key={num} value={num}>
-                        {num} Guest{num > 1 ? 's' : ''}
+                        {num} Guest{num > 1 ? "s" : ""}
                       </option>
                     ))}
                   </select>
@@ -462,7 +520,9 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                   className="w-full flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>{showCalendar ? 'Hide Calendar' : 'Show Calendar'}</span>
+                  <span>
+                    {showCalendar ? "Hide Calendar" : "Show Calendar"}
+                  </span>
                 </button>
               </div>
 
@@ -491,29 +551,49 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">
-                        ${getDisplayRate(property)} × {calculateNights(checkIn, checkOut)} nights
+                        ${getDisplayRate(property)} ×{" "}
+                        {calculateNights(checkIn, checkOut)} nights
                       </span>
                       <span className="text-gray-900">
-                        ${getDisplayRate(property) * calculateNights(checkIn, checkOut)}
+                        $
+                        {getDisplayRate(property) *
+                          calculateNights(checkIn, checkOut)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Service fee</span>
                       <span className="text-gray-900">
-                        ${Math.round(getDisplayRate(property) * calculateNights(checkIn, checkOut) * 0.12)}
+                        $
+                        {Math.round(
+                          getDisplayRate(property) *
+                            calculateNights(checkIn, checkOut) *
+                            0.12
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Taxes</span>
                       <span className="text-gray-900">
-                        ${Math.round(getDisplayRate(property) * calculateNights(checkIn, checkOut) * 0.08)}
+                        $
+                        {Math.round(
+                          getDisplayRate(property) *
+                            calculateNights(checkIn, checkOut) *
+                            0.08
+                        )}
                       </span>
                     </div>
                     <div className="border-t pt-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold text-gray-900">Total</span>
+                        <span className="text-lg font-semibold text-gray-900">
+                          Total
+                        </span>
                         <span className="text-2xl font-bold text-blue-600">
-                          ${Math.round(getDisplayRate(property) * calculateNights(checkIn, checkOut) * 1.2)}
+                          $
+                          {Math.round(
+                            getDisplayRate(property) *
+                              calculateNights(checkIn, checkOut) *
+                              1.2
+                          )}
                         </span>
                       </div>
                     </div>
@@ -524,15 +604,20 @@ const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
               {/* Book Button */}
               <button
                 onClick={handleBookProperty}
-                disabled={!checkIn || !checkOut || !isDateRangeAvailable(checkIn, checkOut)}
+                disabled={
+                  !checkIn ||
+                  !checkOut ||
+                  !isDateRangeAvailable(checkIn, checkOut)
+                }
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-lg transition-colors text-lg"
               >
-                {!isAuthenticated ? 'Login to Book' : 
-                 checkIn && checkOut ? 
-                   isDateRangeAvailable(checkIn, checkOut) ? 
-                     'Reserve Now' : 'Not Available for Selected Dates'
-                   : 'Select Dates to Book'
-                }
+                {!isAuthenticated
+                  ? "Login to Book"
+                  : checkIn && checkOut
+                  ? isDateRangeAvailable(checkIn, checkOut)
+                    ? "Reserve Now"
+                    : "Not Available for Selected Dates"
+                  : "Select Dates to Book"}
               </button>
 
               {!isAuthenticated && (

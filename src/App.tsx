@@ -103,6 +103,11 @@ const AppContent: React.FC = () => {
   if (currentView === "search-results" && searchParams) {
     return (
       <div className="min-h-screen flex flex-col">
+        <TopNavigation
+          currentView="landing"
+          onViewChange={setCurrentView}
+          onLoginClick={() => setShowLogin(true)}
+        />
         <SearchResultsPage
           searchParams={searchParams}
           onPropertySelect={handlePropertySelect}
@@ -119,6 +124,11 @@ const AppContent: React.FC = () => {
   if (currentView === "listing-details" && selectedPropertyId) {
     return (
       <div className="min-h-screen flex flex-col">
+        <TopNavigation
+          currentView="landing"
+          onViewChange={setCurrentView}
+          onLoginClick={() => setShowLogin(true)}
+        />
         <ListingDetailsPage
           propertyId={selectedPropertyId}
           onBack={() => setCurrentView("search-results")}
