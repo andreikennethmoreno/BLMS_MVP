@@ -54,10 +54,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
 
       
-
       {/* Hero Section with Search */}
       <div className="relative">
         {/* Background Image */}

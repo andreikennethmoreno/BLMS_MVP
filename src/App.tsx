@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginForm from './components/LoginForm';
-import LandingPage from './components/LandingPage';
-import SearchResultsPage from './components/SearchResultsPage';
-import ListingDetailsPage from './components/ListingDetailsPage';
-import AppLayout from './components/layout/AppLayout';
-import TopNavigation from './components/layout/TopNavigation';
-import PropertyManagerDashboard from './components/PropertyManagerDashboard';
-import PropertyManagerProperties from './components/PropertyManagerProperties';
-import PropertyManagerOwners from './components/PropertyManagerOwners';
-import PropertyManagerBookings from './components/PropertyManagerBookings';
-import CalendarView from './components/CalendarView';
-import UnitOwnerDashboard from './components/UnitOwnerDashboard';
-import UnitOwnerProperties from './components/UnitOwnerProperties';
-import UnitOwnerBookings from './components/UnitOwnerBookings';
-import CustomerDashboard from './components/CustomerDashboard';
-import CustomerBookings from './components/CustomerBookings';
-import ConcernSystem from './components/ConcernSystem';
-import JobOrderSystem from './components/JobOrderSystem';
-import FormTemplateSystem from './components/FormTemplateSystem';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
+import React, { useState } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import LoginForm from "./components/LoginForm";
+import LandingPage from "./components/LandingPage";
+import SearchResultsPage from "./components/SearchResultsPage";
+import ListingDetailsPage from "./components/ListingDetailsPage";
+import AppLayout from "./components/layout/AppLayout";
+import TopNavigation from "./components/layout/TopNavigation";
+import PropertyManagerDashboard from "./components/PropertyManagerDashboard";
+import PropertyManagerProperties from "./components/PropertyManagerProperties";
+import PropertyManagerOwners from "./components/PropertyManagerOwners";
+import PropertyManagerBookings from "./components/PropertyManagerBookings";
+import CalendarView from "./components/CalendarView";
+import UnitOwnerDashboard from "./components/UnitOwnerDashboard";
+import UnitOwnerProperties from "./components/UnitOwnerProperties";
+import UnitOwnerBookings from "./components/UnitOwnerBookings";
+import CustomerDashboard from "./components/CustomerDashboard";
+import CustomerBookings from "./components/CustomerBookings";
+import ConcernSystem from "./components/ConcernSystem";
+import JobOrderSystem from "./components/JobOrderSystem";
+import FormTemplateSystem from "./components/FormTemplateSystem";
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
 
 interface SearchParams {
   destination: string;
@@ -30,11 +30,11 @@ interface SearchParams {
 
 /**
  * Main App Content Component
- * 
+ *
  * Handles route rendering based on user role and current view.
  * This is the central routing logic that determines which component
  * to render based on the user's role and selected navigation item.
- * 
+ *
  * Data Flow:
  * 1. Gets authenticated user from AuthContext
  * 2. Determines current view from state
@@ -76,12 +76,16 @@ const AppContent: React.FC = () => {
     return <LoginForm onClose={() => setShowLogin(false)} />;
   }
 
-  // Landing page for non-authenticated users or when explicitly requested
-  if (!isAuthenticated || currentView === "landing") {
+  // Handle public pages that don't require authentication
+  // Landing page
+  if (
+    currentView === "landing" ||
+    (!isAuthenticated && currentView === "dashboard")
+  ) {
     return (
       <div className="min-h-screen flex flex-col">
         <TopNavigation
-          currentView={currentView}
+          currentView="landing"
           onViewChange={setCurrentView}
           onLoginClick={() => setShowLogin(true)}
         />
@@ -95,7 +99,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Search results page
+  // Search results page - accessible without authentication
   if (currentView === "search-results" && searchParams) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -111,7 +115,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Individual listing details page
+  // Individual listing details page - accessible without authentication
   if (currentView === "listing-details" && selectedPropertyId) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -127,8 +131,27 @@ const AppContent: React.FC = () => {
     );
   }
 
+  // If user is not authenticated and trying to access authenticated routes, redirect to landing
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <TopNavigation
+          currentView="landing"
+          onViewChange={setCurrentView}
+          onLoginClick={() => setShowLogin(true)}
+        />
+        <LandingPage
+          onSearch={handleSearch}
+          onLogin={() => setShowLogin(true)}
+          isAuthenticated={isAuthenticated}
+          user={user}
+        />
+      </div>
+    );
+  }
+
   /**
-   * Route Rendering Logic
+   * Route Rendering Logic for Authenticated Users
    *
    * Maps view IDs to their corresponding components based on user role.
    * Each role has access to different views as defined in config/routes.ts
@@ -186,6 +209,11 @@ const AppContent: React.FC = () => {
         case "landing":
           return (
             <div className="min-h-screen flex flex-col">
+              <TopNavigation
+                currentView="landing"
+                onViewChange={setCurrentView}
+                onLoginClick={() => setShowLogin(true)}
+              />
               <LandingPage
                 onSearch={handleSearch}
                 onLogin={() => setShowLogin(true)}
@@ -201,16 +229,7 @@ const AppContent: React.FC = () => {
         case "concerns":
           return <ConcernSystem />;
         default:
-          return (
-            <div className="min-h-screen flex flex-col">
-              <LandingPage
-                onSearch={handleSearch}
-                onLogin={() => setShowLogin(true)}
-                isAuthenticated={isAuthenticated}
-                user={user}
-              />
-            </div>
-          );
+          return <CustomerDashboard />;
       }
     }
 
@@ -226,7 +245,7 @@ const AppContent: React.FC = () => {
 
 /**
  * Root App Component
- * 
+ *
  * Wraps the entire application with necessary providers.
  * The AuthProvider manages user authentication state and provides
  * it to all child components through React Context.
