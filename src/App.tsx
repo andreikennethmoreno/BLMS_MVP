@@ -233,13 +233,51 @@ const AppContent: React.FC = () => {
             </div>
           );
         case "browse":
-          return <CustomerDashboard />;
+          return (
+            <div className="min-h-screen flex flex-col">
+              
+              <SearchResultsPage
+                searchParams={
+                  searchParams || {
+                    destination: "",
+                    checkIn: "",
+                    checkOut: "",
+                    guests: 1,
+                  }
+                } // default to show all
+                onPropertySelect={handlePropertySelect}
+                onBackToLanding={() => setCurrentView("landing")}
+                onLogin={() => setShowLogin(true)}
+                isAuthenticated={isAuthenticated}
+                user={user}
+              />
+            </div>
+          );
+
         case "bookings":
           return <CustomerBookings />;
         case "concerns":
           return <ConcernSystem />;
         default:
-          return <CustomerDashboard />;
+          return (
+            <div className="min-h-screen flex flex-col">
+              <SearchResultsPage
+                searchParams={
+                  searchParams || {
+                    destination: "",
+                    checkIn: "",
+                    checkOut: "",
+                    guests: 1,
+                  }
+                }
+                onPropertySelect={handlePropertySelect}
+                onBackToLanding={() => setCurrentView("landing")}
+                onLogin={() => setShowLogin(true)}
+                isAuthenticated={isAuthenticated}
+                user={user}
+              />
+            </div>
+          );
       }
     }
 

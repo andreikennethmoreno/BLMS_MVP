@@ -75,17 +75,20 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({
   // Apply search and filters
   const filteredProperties = useMemo(() => {
     return availableProperties.filter((property: Property) => {
-      // Search by destination
-      const matchesDestination =
-        property.title
-          .toLowerCase()
-          .includes(searchParams.destination.toLowerCase()) ||
-        property.address
-          .toLowerCase()
-          .includes(searchParams.destination.toLowerCase());
+      // If searchParams.destination is empty, skip filtering by destination
+      const matchesDestination = searchParams.destination
+        ? property.title
+            .toLowerCase()
+            .includes(searchParams.destination.toLowerCase()) ||
+          property.address
+            .toLowerCase()
+            .includes(searchParams.destination.toLowerCase())
+        : true;
 
       // Filter by guest capacity
-      const matchesGuests = property.maxGuests >= searchParams.guests;
+      const matchesGuests = searchParams.guests
+        ? property.maxGuests >= searchParams.guests
+        : true;
 
       // Filter by price range
       const rate = getDisplayRate(property);
@@ -215,7 +218,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* Search Summary */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
