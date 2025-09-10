@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Calendar, Users, MapPin, Star, TrendingUp, Award, Shield, User, LogIn } from 'lucide-react';
+import TopNavigation from './layout/TopNavigation';
 
 interface SearchParams {
   destination: string;
@@ -54,11 +55,14 @@ const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <TopNavigation
-        currentView="landing"
-        onViewChange={() => {}}
-        onLoginClick={onLogin}
-      />
+
+      
+        <TopNavigation
+          currentView="landing"
+          onViewChange={() => {}}
+          onLoginClick={onLogin}
+        />
+      
 
       {/* Hero Section with Search */}
       <div className="relative">
