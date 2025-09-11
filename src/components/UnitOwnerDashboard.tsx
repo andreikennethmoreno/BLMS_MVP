@@ -7,6 +7,7 @@ import {
   FileText,
   Phone,
   Trash2,
+  Ticket,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -15,6 +16,8 @@ import propertiesData from "../data/properties.json";
 import contractsData from "../data/contracts.json";
 import bookingsData from "../data/bookings.json";
 import { updatePropertyWithCommission } from "../utils/propertyCalculations";
+  import vouchersData from "../data/vouchers.json";
+
 
 // =====================
 // Types
@@ -338,6 +341,19 @@ const UnitOwnerDashboard: React.FC = () => {
         ? [...prev.surroundings, s]
         : prev.surroundings.filter((x) => x !== s),
     }));
+  
+
+  
+  
+  const vouchers = (vouchersData as any)?.vouchers || [];
+  const ownerVouchers = vouchers.filter((v: any) =>
+    ownerProperties.some((p: Property) => p.id === v.propertyId)
+  );
+  const voucherStats = {
+    activeVouchers: ownerVouchers.filter((v: any) => v.status === "active")
+      .length,
+  };
+
 
   // =====================
   // Render

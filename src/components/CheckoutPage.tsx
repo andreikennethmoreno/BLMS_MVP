@@ -7,6 +7,7 @@ import {
   Shield,
   CheckCircle,
   ArrowLeft,
+  Ticket,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
