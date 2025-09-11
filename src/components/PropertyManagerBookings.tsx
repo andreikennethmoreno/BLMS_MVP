@@ -435,6 +435,22 @@ const PropertyManagerBookings: React.FC = () => {
                 <div>
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">Payment Information</h4>
                   <div className="bg-gray-50 rounded-lg p-4">
+                    {selectedBooking.originalAmount && selectedBooking.voucherDiscount && (
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600">Original Amount</span>
+                        <span className="text-gray-900">
+                          ${selectedBooking.originalAmount}
+                        </span>
+                      </div>
+                    )}
+                    {selectedBooking.voucherDiscount && selectedBooking.appliedVoucherCode && (
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600">Voucher Discount ({selectedBooking.appliedVoucherCode})</span>
+                        <span className="text-green-600">
+                          -${selectedBooking.voucherDiscount}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-600">Total Amount</span>
                       <span className="text-2xl font-bold text-emerald-600">

@@ -31,6 +31,14 @@ export const BUSINESS_CONFIG = {
   
   // Appeal limits
   MAX_APPEALS_PER_PROPERTY: 3,
+  
+  // Voucher system
+  MIN_VOUCHER_DISCOUNT_PERCENTAGE: 1,
+  MAX_VOUCHER_DISCOUNT_PERCENTAGE: 50,
+  MIN_VOUCHER_DISCOUNT_FIXED: 1,
+  MAX_VOUCHER_DISCOUNT_FIXED: 1000,
+  DEFAULT_VOUCHER_USAGE_LIMIT: 100,
+  VOUCHER_CODE_LENGTH: 8,
 } as const;
 
 // ===== USER ROLES =====
@@ -137,6 +145,8 @@ export const STORAGE_KEYS = {
   DOCUMENT_SIGNATURES: 'documentSignatures',
   REVIEW_REMINDERS: 'reviewReminders',
   USERS: 'users',
+  VOUCHERS: 'vouchers',
+  VOUCHER_USAGE: 'voucherUsage',
 } as const;
 
 // ===== DEMO ACCOUNTS =====

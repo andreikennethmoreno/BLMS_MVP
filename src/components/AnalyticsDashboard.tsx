@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Calendar, Download, DollarSign, Users, Building, Star, UserCheck } from 'lucide-react';
+import { BarChart3, TrendingUp, Calendar, Download, DollarSign, Users, Building, Star, UserCheck, Ticket } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { walkInService } from '../services/walkInService';
+import { voucherService } from '../services/voucherService';
 import bookingsData from '../data/bookings.json';
 import propertiesData from '../data/properties.json';
 import reviewsData from '../data/reviews.json';
@@ -342,6 +343,46 @@ const AnalyticsDashboard: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Analytics for Unit Owners */}
+      {user?.role === 'unit_owner' && (
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Voucher Statistics for Unit Owners */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <Ticket className="w-5 h-5 mr-2 text-emerald-600" />
+              My Voucher Performance
+            </h3>
+            <div className="space-y-4">
+              {(() => {
+                const voucherStats = voucherService.getVoucherStatsForOwner(user.id);
+                return (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Vouchers</span>
+                      <span className="font-semibold text-gray-900">{voucherStats.totalVouchers}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Active Vouchers</span>
+                      <span className="font-semibold text-gray-900">{voucherStats.activeVouchers}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Times Used</span>
+                      <span className="font-semibold text-gray-900">{voucherStats.totalUsage}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Discount Given</span>
+                      <span className="font-semibold text-orange-600">
+                        ${voucherStats.totalDiscountGiven.toLocaleString()}
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>

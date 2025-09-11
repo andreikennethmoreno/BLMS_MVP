@@ -20,6 +20,7 @@ import ConcernSystem from "./components/ConcernSystem";
 import JobOrderSystem from "./components/JobOrderSystem";
 import FormTemplateSystem from "./components/FormTemplateSystem";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import VoucherManagement from "./components/VoucherManagement";
 
 interface SearchParams {
   destination: string;
@@ -208,6 +209,8 @@ const AppContent: React.FC = () => {
           return <ConcernSystem />;
         case "analytics":
           return <AnalyticsDashboard />;
+        case "vouchers":
+          return <VoucherManagement />;
         default:
           return <UnitOwnerDashboard />;
       }

@@ -519,6 +519,25 @@ const CustomerBookings: React.FC = () => {
                     Payment Summary
                   </h4>
                   <div className="bg-purple-50 rounded-lg p-4">
+                    {selectedBooking.originalAmount && selectedBooking.voucherDiscount && (
+                      <>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600">Original Amount</span>
+                          <span className="font-medium text-gray-900">
+                            ${selectedBooking.originalAmount}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600 flex items-center">
+                            <Ticket className="w-4 h-4 mr-1" />
+                            Voucher Discount ({selectedBooking.appliedVoucherCode})
+                          </span>
+                          <span className="font-medium text-green-600">
+                            -${selectedBooking.voucherDiscount}
+                          </span>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-600">
                         $
@@ -549,6 +568,11 @@ const CustomerBookings: React.FC = () => {
                           ${selectedBooking.totalAmount}
                         </span>
                       </div>
+                      {selectedBooking.voucherDiscount && (
+                        <div className="text-sm text-green-600 text-right mt-1">
+                          You saved ${selectedBooking.voucherDiscount} with voucher!
+                        </div>
+                      )}
                     </div>
                     <div className="mt-3 flex justify-between items-center">
                       <span className="text-sm text-gray-600">

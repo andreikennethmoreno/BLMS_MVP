@@ -441,6 +441,22 @@ const UnitOwnerBookings: React.FC = () => {
                 <div className="bg-blue-50 rounded-xl p-4">
                   <h4 className="font-semibold text-gray-900 mb-4">Payment Summary</h4>
                   <div className="space-y-3">
+                    {selectedBooking.originalAmount && selectedBooking.voucherDiscount && (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Original Amount</span>
+                          <span className="font-medium text-gray-900">
+                            ₱{selectedBooking.originalAmount.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Voucher Discount ({selectedBooking.appliedVoucherCode})</span>
+                          <span className="font-medium text-green-600">
+                            -₱{selectedBooking.voucherDiscount.toLocaleString()}
+                          </span>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">
                         ₱{Math.round(selectedBooking.totalAmount / calculateNights(selectedBooking.checkIn, selectedBooking.checkOut)).toLocaleString()} × {calculateNights(selectedBooking.checkIn, selectedBooking.checkOut)} night{calculateNights(selectedBooking.checkIn, selectedBooking.checkOut) > 1 ? 's' : ''}

@@ -10,9 +10,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import VoucherInput from "./VoucherInput";
+import { voucherService } from "../services/voucherService";
 import bookingsData from "../data/bookings.json";
 import { getDisplayRate } from "../utils/propertyCalculations";
-import { Property } from "../types";
+import { Property, Voucher } from "../types";
 
 interface CheckoutPageProps {
   property: Property;
@@ -38,6 +40,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   );
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    voucher: Voucher;
+    discountAmount: number;
+  } | null>(null);
   const [paymentDetails, setPaymentDetails] = useState({
     cardNumber: "",
     expiryDate: "",
@@ -60,6 +66,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const subtotal = rate * nights;
   const serviceFee = Math.round(subtotal * 0.12); // 12% service fee
   const taxes = Math.round(subtotal * 0.08); // 8% taxes
+  const voucherDiscount = appliedVoucher?.discountAmount || 0;
+  const total = subtotal + serviceFee + taxes - voucherDiscount;
   const total = subtotal + serviceFee + taxes;
 
   const handlePayment = async () => {
@@ -76,6 +84,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
       checkOut,
       guests,
       totalAmount: total,
+      originalAmount: subtotal + serviceFee + taxes,
+      voucherDiscount: voucherDiscount,
+      appliedVoucherCode: appliedVoucher?.voucher.code,
       status: "confirmed",
       paymentStatus: "paid",
       bookedAt: new Date().toISOString(),
@@ -84,10 +95,30 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
     };
 
     setBookings([...bookings, newBooking]);
+    
+    // Record voucher usage if applied
+    if (appliedVoucher && user) {
+      voucherService.applyVoucher(
+        appliedVoucher.voucher.id,
+        newBooking.id,
+        user.id,
+        user.name,
+        property.id,
+        appliedVoucher.discountAmount
+      );
+    }
+    
     setIsProcessing(false);
     onComplete();
   };
 
+  const handleVoucherApplied = (voucher: Voucher, discountAmount: number) => {
+    setAppliedVoucher({ voucher, discountAmount });
+  };
+
+  const handleVoucherRemoved = () => {
+    setAppliedVoucher(null);
+  };
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     const matches = v.match(/\d{4,16}/g);
@@ -202,6 +233,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <span className="text-gray-600">Taxes</span>
                   <span className="text-gray-900">${taxes}</span>
                 </div>
+                {appliedVoucher && (
+                  <div className="flex justify-between items-center text-green-600">
+                    <span className="flex items-center">
+                      <Ticket className="w-4 h-4 mr-1" />
+                      Voucher ({appliedVoucher.voucher.code})
+                    </span>
+                    <span>-${appliedVoucher.discountAmount}</span>
+                  </div>
+                )}
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold text-gray-900">
@@ -211,10 +251,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       ${total}
                     </span>
                   </div>
+                  {appliedVoucher && (
+                    <div className="text-sm text-green-600 text-right mt-1">
+                      You saved ${appliedVoucher.discountAmount}!
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
+            {/* Voucher Input */}
+            <VoucherInput
+              propertyId={property.id}
+              subtotal={subtotal}
+              onVoucherApplied={handleVoucherApplied}
+              onVoucherRemoved={handleVoucherRemoved}
+              appliedVoucher={appliedVoucher}
+            />
             {/* Cancellation Policy */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="font-semibold text-gray-900 mb-3">

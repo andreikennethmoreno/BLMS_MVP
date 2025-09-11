@@ -13,7 +13,8 @@ import {
   AlertTriangle, 
   Wrench, 
   FileText, 
-  BarChart3 
+  BarChart3,
+  Ticket
 } from 'lucide-react';
 import type { UserRole } from '../types';
 
@@ -94,6 +95,12 @@ export const ROUTES: RouteConfig[] = [
     label: 'Analytics',
     icon: BarChart3,
     roles: ['property_manager', 'unit_owner']
+  },
+  {
+    id: 'vouchers',
+    label: 'Vouchers',
+    icon: Ticket,
+    roles: ['unit_owner']
   }
 ];
 

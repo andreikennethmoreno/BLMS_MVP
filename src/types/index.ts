@@ -251,6 +251,34 @@ export interface DocumentSignature {
   signedPdfUrl: string;
 }
 
+// ===== VOUCHER TYPES =====
+export interface Voucher {
+  id: string;
+  code: string;
+  ownerId: string;
+  propertyId: string;
+  propertyTitle: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  expirationDate: string;
+  usageLimit: number;
+  usedCount: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VoucherUsage {
+  id: string;
+  voucherId: string;
+  bookingId: string;
+  customerId: string;
+  customerName: string;
+  propertyId: string;
+  discountAmount: number;
+  usedAt: string;
+}
+
 // ===== ANALYTICS TYPES =====
 export interface AnalyticsData {
   totalRevenue: number;

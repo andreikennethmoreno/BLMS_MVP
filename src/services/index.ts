@@ -12,3 +12,4 @@ export * from './propertyService';
 export * from './contractService';
 export * from './analyticsService';
 export * from './walkInService';
+export * from './voucherService';

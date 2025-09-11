@@ -360,7 +360,7 @@ const UnitOwnerDashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
@@ -386,6 +386,15 @@ const UnitOwnerDashboard: React.FC = () => {
               <p className="text-3xl font-bold text-orange-600">{pendingContracts.length}</p>
             </div>
             <FileText className="w-8 h-8 text-orange-600" />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Active Vouchers</p>
+              <p className="text-3xl font-bold text-purple-600">{voucherStats.activeVouchers}</p>
+            </div>
+            <Ticket className="w-8 h-8 text-purple-600" />
           </div>
         </div>
       </div>
