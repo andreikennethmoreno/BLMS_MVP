@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Search, Filter, MapPin, User, DollarSign, Clock, CheckCircle } from 'lucide-react';
+import { Calendar, Search, Filter, MapPin, User, DollarSign, Clock, CheckCircle, UserCheck } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import bookingsData from '../data/bookings.json';
 import propertiesData from '../data/properties.json';
@@ -239,6 +239,20 @@ const PropertyManagerBookings: React.FC = () => {
                                 </p>
                                 <p className="text-sm text-gray-500">
                                   Owner: {owner?.name || 'Unknown'}
+                                {selectedBooking.walkInBooking && (
+                                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-center space-x-2">
+                                      <UserCheck className="w-4 h-4 text-blue-600" />
+                                      <span className="text-sm font-medium text-blue-900">Walk-in Booking</span>
+                                    </div>
+                                    <div className="text-xs text-blue-800 mt-1">
+                                      <p>Payment: {selectedBooking.walkInBooking.paymentMethod}</p>
+                                      {selectedBooking.walkInBooking.notes && (
+                                        <p>Notes: {selectedBooking.walkInBooking.notes}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                                 </p>
                               </div>
                               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>

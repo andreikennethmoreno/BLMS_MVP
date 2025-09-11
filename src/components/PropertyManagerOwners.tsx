@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Search, Mail, CheckCircle, XCircle, Clock, Building, Calendar } from 'lucide-react';
+import { Users, Search, Mail, CheckCircle, XCircle, Clock, Building, Calendar, UserCheck } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ContractTemplateEditor from './ContractTemplateEditor';
 import usersData from '../data/users.json';
@@ -261,6 +261,9 @@ const PropertyManagerOwners: React.FC = () => {
                           ) : (
                             <Clock className="w-5 h-5 text-orange-500 ml-2" />
                           )}
+                          {owner.walkInRegistration && (
+                            <UserCheck className="w-4 h-4 text-blue-500 ml-1" title="Walk-in Registration" />
+                          )}
                         </h3>
                         <p className="text-gray-600 flex items-center">
                           <Mail className="w-4 h-4 mr-1" />
@@ -268,8 +271,13 @@ const PropertyManagerOwners: React.FC = () => {
                         </p>
                         <p className="text-sm text-gray-500 flex items-center mt-1">
                           <Calendar className="w-4 h-4 mr-1" />
-                          Joined: {new Date(owner.createdAt).toLocaleDateString()}
+                          {owner.walkInRegistration ? 'Walk-in registered' : 'Joined'}: {new Date(owner.createdAt).toLocaleDateString()}
                         </p>
+                        {owner.walkInRegistration && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Walk-in customer • Phone: {owner.walkInRegistration.phone}
+                          </p>
+                        )}
                       </div>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                         owner.verified 

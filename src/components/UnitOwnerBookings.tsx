@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, User, MapPin, Building2, Clock, CheckCircle, TrendingUp, Eye, Filter, Search } from 'lucide-react';
+import { Calendar, User, MapPin, Building2, Clock, CheckCircle, TrendingUp, Eye, Filter, Search, UserCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import bookingsData from '../data/bookings.json';
@@ -312,6 +312,12 @@ const UnitOwnerBookings: React.FC = () => {
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span>
                               Booked: {new Date(booking.bookedAt).toLocaleDateString('en-PH')}
+                              {booking.walkInBooking && (
+                                <span className="ml-2 inline-flex items-center space-x-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                  <UserCheck className="w-3 h-3" />
+                                  <span>Walk-in</span>
+                                </span>
+                              )}
                             </span>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               booking.paymentStatus === 'paid' 

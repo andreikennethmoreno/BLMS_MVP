@@ -6,6 +6,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  UserCheck,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -357,6 +358,12 @@ const CustomerBookings: React.FC = () => {
                       <div className="mt-3 text-sm text-gray-500">
                         Booked on:{" "}
                         {new Date(booking.bookedAt).toLocaleDateString()}
+                        {booking.walkInBooking && (
+                          <span className="ml-2 inline-flex items-center space-x-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            <UserCheck className="w-3 h-3" />
+                            <span>Walk-in</span>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

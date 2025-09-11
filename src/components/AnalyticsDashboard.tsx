@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Calendar, Download, DollarSign, Users, Building, Star } from 'lucide-react';
+import { BarChart3, TrendingUp, Calendar, Download, DollarSign, Users, Building, Star, UserCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { walkInService } from '../services/walkInService';
 import bookingsData from '../data/bookings.json';
 import propertiesData from '../data/properties.json';
 import reviewsData from '../data/reviews.json';
@@ -254,6 +255,43 @@ const AnalyticsDashboard: React.FC = () => {
       {/* Additional Analytics for Property Managers */}
       {user?.role === 'property_manager' && (
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Walk-in Statistics */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <UserCheck className="w-5 h-5 mr-2 text-blue-600" />
+              Walk-in Registration Stats
+            </h3>
+            <div className="space-y-4">
+              {(() => {
+                const walkInStats = walkInService.getWalkInStats();
+                return (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Walk-in Customers</span>
+                      <span className="font-semibold text-gray-900">{walkInStats.totalWalkInCustomers}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Walk-in Bookings</span>
+                      <span className="font-semibold text-gray-900">{walkInStats.totalWalkInBookings}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Walk-in Revenue</span>
+                      <span className="font-semibold text-green-600">
+                        ${walkInStats.walkInRevenue.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Avg. Booking Value</span>
+                      <span className="font-semibold text-blue-600">
+                        ${Math.round(walkInStats.averageWalkInBookingValue).toLocaleString()}
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
           {/* User Growth */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Platform Growth</h3>

@@ -20,6 +20,14 @@ export interface User {
   verified: boolean;
   createdAt: string;
   onboardingData?: OnboardingData; // For unit owners
+  walkInRegistration?: {
+    registeredBy: string;
+    registeredAt: string;
+    idType: string;
+    idNumber: string;
+    address: string;
+    phone: string;
+  };
 }
 
 export interface OnboardingData {
@@ -110,6 +118,11 @@ export interface Booking {
   bookedAt: string;
   customerName: string;
   customerEmail: string;
+  walkInBooking?: {
+    registeredBy: string;
+    paymentMethod: string;
+    notes: string;
+  };
 }
 
 // ===== CONTRACT TYPES =====

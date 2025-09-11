@@ -24,6 +24,7 @@ export const ACTIONS = {
   VIEW_OWN_BOOKINGS: 'view_own_bookings',
   CREATE_BOOKING: 'create_booking',
   CANCEL_BOOKING: 'cancel_booking',
+  WALK_IN_REGISTRATION: 'walk_in_registration',
   
   // Contract actions
   CREATE_CONTRACT: 'create_contract',
@@ -69,6 +70,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     ACTIONS.VIEW_PLATFORM_ANALYTICS,
     ACTIONS.EXPORT_DATA,
     ACTIONS.VIEW_REVIEWS,
+    ACTIONS.WALK_IN_REGISTRATION,
   ],
   
   unit_owner: [

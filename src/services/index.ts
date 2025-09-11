@@ -11,3 +11,4 @@ export * from './bookingService';
 export * from './propertyService';
 export * from './contractService';
 export * from './analyticsService';
+export * from './walkInService';

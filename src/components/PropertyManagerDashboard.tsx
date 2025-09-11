@@ -7,9 +7,11 @@ import {
   XCircle,
   DollarSign,
   Eye,
+  UserPlus,
 } from "lucide-react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import ContractPDFViewer from "./ContractPDFViewer";
+import WalkInRegistrationModal from "./WalkInRegistrationModal";
 import { Property } from "../types";
 import { PROPERTY_STATUS } from "../config/constants";
 import propertiesData from "../data/properties.json";
@@ -26,6 +28,7 @@ const PropertyManagerDashboard: React.FC = () => {
     "contracts",
     contractsData.contracts
   );
+  const [showWalkInModal, setShowWalkInModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null
   );
@@ -51,6 +54,10 @@ const PropertyManagerDashboard: React.FC = () => {
     0
   );
 
+  const handleWalkInSuccess = (newUser: any, newBooking: any) => {
+    setShowWalkInModal(false);
+    alert(`Walk-in registration successful!\n\nCustomer: ${newUser.name}\nBooking ID: ${newBooking.id}\nTotal: $${newBooking.totalAmount}\n\nThe customer has been registered and their booking is confirmed.`);
+  };
   const getOwnerName = (ownerId: string) => {
     const owner = users.find((u) => u.id === ownerId);
     return owner?.name || "Unknown Owner";
@@ -170,12 +177,23 @@ const PropertyManagerDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Property Manager Dashboard
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Manage properties, owners, and bookings
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Property Manager Dashboard
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Manage properties, owners, and bookings
+            </p>
+          </div>
+          <button
+            onClick={() => setShowWalkInModal(true)}
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors shadow-lg"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>Walk-in Registration</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -554,6 +572,13 @@ const PropertyManagerDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Walk-in Registration Modal */}
+      <WalkInRegistrationModal
+        isOpen={showWalkInModal}
+        onClose={() => setShowWalkInModal(false)}
+        onSuccess={handleWalkInSuccess}
+      />
     </div>
   );
 };

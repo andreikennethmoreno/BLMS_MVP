@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, momentLocalizer, Event, View } from 'react-big-calendar';
 import moment from 'moment';
-import { Filter, Users, DollarSign, Building, Eye, X, MapPin, User, Calendar as CalendarIcon } from 'lucide-react';
+import { Filter, Users, DollarSign, Building, Eye, X, MapPin, User, Calendar as CalendarIcon, UserCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import bookingsData from '../data/bookings.json';
