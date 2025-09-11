@@ -68,7 +68,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const taxes = Math.round(subtotal * 0.08); // 8% taxes
   const voucherDiscount = appliedVoucher?.discountAmount || 0;
   const total = subtotal + serviceFee + taxes - voucherDiscount;
-  const total = subtotal + serviceFee + taxes;
 
   const handlePayment = async () => {
     setIsProcessing(true);
