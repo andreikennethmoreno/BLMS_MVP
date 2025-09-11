@@ -6,6 +6,12 @@ import propertiesData from '../data/properties.json';
 import usersData from '../data/users.json';
 import { calculateNights } from '../utils/calculations';
 
+
+interface WalkInBooking {
+  paymentMethod: string;
+  notes?: string;
+}
+
 interface Booking {
   id: string;
   propertyId: string;
@@ -19,6 +25,7 @@ interface Booking {
   bookedAt: string;
   customerName: string;
   customerEmail: string;
+  walkInBooking?: WalkInBooking; 
 }
 
 const PropertyManagerBookings: React.FC = () => {
@@ -239,7 +246,7 @@ const PropertyManagerBookings: React.FC = () => {
                                 </p>
                                 <p className="text-sm text-gray-500">
                                   Owner: {owner?.name || 'Unknown'}
-                                {selectedBooking.walkInBooking && (
+                                {selectedBooking?.walkInBooking && (
                                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
                                     <div className="flex items-center space-x-2">
                                       <UserCheck className="w-4 h-4 text-blue-600" />
